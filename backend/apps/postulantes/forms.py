@@ -21,21 +21,16 @@ class RegistroAcademicoForm(forms.ModelForm):
         model = DatosAcademicos
         fields = ['certificado_notas_pdf']
         widgets = {
-            'certificado_notas_pdf': forms.FileInput(attrs={'accept': '.pdf', 'class': 'form-control'})
+            'certificado_notas_pdf': forms.FileInput(attrs={'accept': '.pdf,image/*', 'class': 'form-control'})
         }
         labels = {
-            'certificado_notas_pdf': 'Certificado de Notas Semestre Pasado (PDF)',
+            'certificado_notas_pdf': 'Certificado de Notas Semestre Pasado (PDF o Imagen)',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.certificado_notas_pdf:
-            self.fields['certificado_notas_pdf'].required = False
-        else:
-            self.fields['certificado_notas_pdf'].required = True
-            self.fields['certificado_notas_pdf'].error_messages = {
-                'required': 'Por favor, adjunta tu certificado de notas en formato PDF.'
-            }
+        # El certificado de notas ya no es obligatorio
+        self.fields['certificado_notas_pdf'].required = False
 
 
 class FichaSocioeconomicaForm(forms.ModelForm):

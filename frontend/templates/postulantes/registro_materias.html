@@ -20,7 +20,7 @@
         </div>
 
         <div class="card-body p-4">
-          <form method="post" id="materias-form" enctype="multipart/form-data">
+          <form method="post" id="materias-form" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             {{ formset.management_form }}
 
@@ -51,11 +51,11 @@
 
             <!-- Carga de Certificado de Notas -->
             <div class="card bg-light border-0 rounded-4 p-4 mb-4">
-              <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-file-earmark-pdf-fill text-primary me-2"></i>Certificado de Notas (Respaldo)</h5>
+              <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-file-earmark-image-fill text-primary me-2"></i>Certificado de Notas (Respaldo)</h5>
               <div class="row align-items-center">
                 <div class="col-md-7">
                   <p class="text-muted small mb-3 mb-md-0">
-                    Sube tu certificado de notas en formato <strong>PDF</strong>. Este documento es obligatorio para que el evaluador valide la información cargada en el cuadro de materias. (Tamaño máximo: 5 MB).
+                    Sube tu certificado de notas en formato <strong>PDF o Imagen (PNG, JPG, JPEG)</strong>. Este documento es <strong>opcional</strong> pero sirve de respaldo para que el evaluador valide la información cargada en el cuadro de materias. (Tamaño máximo: 5 MB).
                   </p>
                   {{ form_acad.certificado_notas_pdf }}
                   {% if form_acad.certificado_notas_pdf.errors %}
@@ -70,14 +70,14 @@
                         <div>
                           <div class="small fw-bold text-dark">Certificado Cargado</div>
                           <a href="{{ datos_acad.certificado_notas_pdf.url }}" target="_blank" class="btn btn-link btn-sm p-0 text-primary fw-semibold text-decoration-none">
-                            <i class="bi bi-eye"></i> Ver PDF Actual
+                            <i class="bi bi-eye"></i> Ver Certificado Actual
                           </a>
                         </div>
                       </div>
                       <small class="text-muted d-block">Sube un nuevo archivo si deseas reemplazarlo.</small>
                     </div>
                   {% else %}
-                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Falta certificado</span>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Opcional</span>
                   {% endif %}
                 </div>
               </div>

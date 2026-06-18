@@ -77,10 +77,10 @@ class DatosAcademicos(models.Model):
     materias_aprobadas = models.IntegerField()
     certificado_notas_pdf = models.FileField(
         upload_to='certificados/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf']), validate_file_size],
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'png', 'jpg', 'jpeg']), validate_file_size],
         blank=True,
         null=True,
-        help_text="Certificado de notas del semestre pasado (PDF)"
+        help_text="Certificado de notas del semestre pasado (PDF o Imagen)"
     )
     puntaje_ppa = models.FloatField(default=0.0)
     puntaje_materias = models.FloatField(default=0.0)
