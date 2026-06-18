@@ -8,5 +8,6 @@ urlpatterns = [
     path('ficha-socioeconomica/', views.FichaSocioeconomicaView.as_view(), name='ficha_socioeconomica'),
     path('mi-postulacion/', views.MiPostulacionView.as_view(), name='mi_postulacion'),
     path('registro-materias/', views.RegistroMateriasView.as_view(), name='registro_materias'),
+    path('enviar-postulacion/', views.EnviarPostulacionView.as_view(), name='enviar_postulacion'),
 ]
 

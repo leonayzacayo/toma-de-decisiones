@@ -84,7 +84,7 @@ def calcular_y_guardar_puntaje(postulante):
     solicitud.puntaje_academico = p_academico
     solicitud.puntaje_socioeconomico = p_socioeconomico
     solicitud.puntaje_total = p_total
-    solicitud.estado = "Postulación completada"
+    solicitud.estado = "Postulación completada" if postulante.ficha_completada else "Pendiente"
     solicitud.save()
 
     # Sincronizar con el modelo legado Evaluacion
@@ -93,7 +93,7 @@ def calcular_y_guardar_puntaje(postulante):
     evaluacion.puntaje_academico = p_academico
     evaluacion.puntaje_socioeconomico = p_socioeconomico
     evaluacion.puntaje_total = p_total
-    evaluacion.estado = Evaluacion.ESTADO_EVALUADO
+    evaluacion.estado = Evaluacion.ESTADO_EVALUADO if postulante.ficha_completada else Evaluacion.ESTADO_PENDIENTE
     evaluacion.save()
 
     return solicitud
@@ -180,9 +180,8 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
                 if formset.is_valid():
                     formset.save()
 
-                # Marcar ficha completada
-                postulante.ficha_completada = True
-                postulante.save()
+                # No marcamos la ficha como completada automáticamente aquí.
+                # Se marcará cuando el postulante haga clic en "Enviar Postulación".
 
                 # Guardar Carrera si se envió en el formulario
                 carrera_val = request.POST.get('carrera')
@@ -283,4 +282,24 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
             'postulante': postulante,
             'datos_acad': datos_acad,
         })
+
+
+from django.views import View
+
+class EnviarPostulacionView(PostulanteRequeridoMixin, View):
+    def post(self, request, *args, **kwargs):
+        postulante = get_object_or_404(Postulante, user=request.user)
+        estado = postulante.get_estado_postulacion()
+        
+        if not estado['is_completa']:
+            messages.error(request, 'Debes completar la Ficha Socioeconómica y registrar tus Materias Cursadas antes de enviar.')
+            return redirect('postulantes:panel')
+            
+        with transaction.atomic():
+            postulante.ficha_completada = True
+            postulante.save()
+            calcular_y_guardar_puntaje(postulante)
+            
+        messages.success(request, '¡Tu postulación ha sido enviada con éxito! Ahora estás participando en el proceso de asignación de becas.')
+        return redirect('postulantes:panel')
 
