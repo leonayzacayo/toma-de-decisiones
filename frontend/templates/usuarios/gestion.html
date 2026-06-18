@@ -61,10 +61,10 @@
               <td>{{ u.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</td>
               <td class="text-end pe-4">
                 <div class="d-flex justify-content-end gap-2">
-                  <a href="{% url 'usuarios:editar' u.pk %}" class="btn btn-sm btn-outline-light">
+                  <a href="{% url 'usuarios:editar_usuario' u.pk %}" class="btn btn-sm btn-outline-light">
                     <i class="bi bi-pencil"></i> Editar
                   </a>
-                  <form method="post" action="{% url 'usuarios:toggle' u.pk %}" style="display:inline;">
+                  <form method="post" action="{% url 'usuarios:toggle_usuario' u.pk %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
                       {% if u.is_active %}
