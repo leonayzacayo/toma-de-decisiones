@@ -51,7 +51,13 @@ class Postulante(models.Model):
         except Exception:
             ficha_completa = False
 
-        tiene_materias = self.materias.count() >= 2
+        try:
+            datos_acad = getattr(self, 'datos_academicos', None)
+            tiene_certificado = bool(datos_acad and datos_acad.certificado_notas_pdf)
+        except Exception:
+            tiene_certificado = False
+
+        tiene_materias = (self.materias.count() >= 2) and tiene_certificado
 
         progreso = 0
         if ficha_completa:

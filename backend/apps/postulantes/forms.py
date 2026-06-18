@@ -29,8 +29,11 @@ class RegistroAcademicoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # El certificado de notas ya no es obligatorio
-        self.fields['certificado_notas_pdf'].required = False
+        # El certificado de notas es obligatorio si aún no se ha subido
+        if self.instance and self.instance.certificado_notas_pdf:
+            self.fields['certificado_notas_pdf'].required = False
+        else:
+            self.fields['certificado_notas_pdf'].required = True
 
 
 class FichaSocioeconomicaForm(forms.ModelForm):
