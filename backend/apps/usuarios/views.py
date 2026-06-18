@@ -167,3 +167,25 @@ class LogsView(AdministradorRequeridoMixin, ListView):
         ctx['acciones'] = LogAccion.ACCION_CHOICES
         ctx['usuarios_staff'] = User.objects.filter(is_staff=True)
         return ctx
+
+
+class VaciarPostulantesView(AdministradorRequeridoMixin, View):
+    def post(self, request, *args, **kwargs):
+        from django.db.models import Q
+        postulantes_users = User.objects.filter(
+            Q(perfil__rol=PerfilUsuario.ROL_POSTULANTE) |
+            Q(is_staff=False, is_superuser=False)
+        ).distinct()
+        count = postulantes_users.count()
+        postulantes_users.delete()
+        
+        # Limpiar logs huérfanos o antiguos
+        LogAccion.objects.filter(usuario__isnull=True).delete()
+        
+        messages.success(request, f'Se han eliminado correctamente {count} usuarios postulantes y toda su información relacionada.')
+        LogAccion.objects.create(
+            usuario=request.user,
+            accion='otro',
+            detalles={'accion': 'vaciar_postulantes', 'cantidad_eliminada': count}
+        )
+        return redirect('usuarios:gestion')

@@ -8,9 +8,17 @@
       <h1 class="h3 fw-bold mb-1"><i class="bi bi-people gold-text me-2"></i>Gestión de Usuarios</h1>
       <p class="text-muted mb-0">Administración de cuentas de postulantes, evaluadores y administradores</p>
     </div>
-    <a href="{% url 'usuarios:crear_staff' %}" class="btn btn-gold d-flex align-items-center gap-2">
-      <i class="bi bi-person-plus"></i> Nuevo Usuario Staff
-    </a>
+    <div class="d-flex gap-2">
+      <form method="post" action="{% url 'usuarios:vaciar_postulantes' %}" onsubmit="return confirm('¿Está absolutamente seguro de que desea eliminar a TODOS los usuarios postulantes del sistema y todos sus datos relacionados (fichas, materias, certificados, evaluaciones)? Esta acción no se puede deshacer.');" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger d-flex align-items-center gap-2">
+          <i class="bi bi-trash3"></i> Vaciar Postulantes
+        </button>
+      </form>
+      <a href="{% url 'usuarios:crear_usuario' %}" class="btn btn-gold d-flex align-items-center gap-2">
+        <i class="bi bi-person-plus"></i> Nuevo Usuario Staff
+      </a>
+    </div>
   </div>
 
   <div class="card">

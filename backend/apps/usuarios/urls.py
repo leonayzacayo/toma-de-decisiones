@@ -16,5 +16,8 @@ urlpatterns = [
 
     # Logs
     path('logs/', views.LogsView.as_view(), name='logs'),
+
+    # Vaciar postulantes
+    path('gestion/vaciar-postulantes/', views.VaciarPostulantesView.as_view(), name='vaciar_postulantes'),
 ]
 
