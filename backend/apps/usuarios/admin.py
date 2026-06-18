@@ -1,5 +1,13 @@
 from django.contrib import admin
+from django.utils.crypto import get_random_string
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.models import User
 from .models import PerfilUsuario, LogAccion
+from apps.postulantes.models import Postulante
+
+
+from django.contrib.auth.models import Group
 
 
 @admin.register(PerfilUsuario)

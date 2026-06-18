@@ -1,183 +1,172 @@
 {% extends "base.html" %}
-{% block title %}Mi Panel{% endblock %}
+{% block title %}Mi Panel - Becas UAGRM{% endblock %}
 
 {% block content %}
-<div class="fade-in">
+<div class="container py-5">
+  <div class="max-width-800 mx-auto fade-in">
 
-  <!-- ── Encabezado ─────────────────────────────── -->
-  <div class="d-flex justify-content-between align-items-start mb-4">
-    <div>
-      <h1 class="h3 fw-bold mb-1">Hola, {{ user.first_name }} 👋</h1>
-      <p class="text-muted mb-0">Panel de tu postulación a beca universitaria</p>
+    <!-- Encabezado de Bienvenida -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h1 class="h3 fw-bold mb-1 text-dark">Hola, {{ user.first_name }} 👋</h1>
+        <p class="text-muted mb-0">Bienvenido al Panel de Postulación de la Beca Albergue.</p>
+      </div>
+      <span class="badge bg-light text-primary border border-primary px-3 py-2 rounded-pill font-monospace small">
+        <i class="bi bi-shield-check me-1"></i> Perfil Verificado
+      </span>
     </div>
-    {% if convocatoria_activa %}
-    <div class="badge text-bg-success fs-6 px-3 py-2">
-      <i class="bi bi-calendar-check me-1"></i>
-      Convocatoria: {{ convocatoria_activa.nombre }}
-    </div>
-    {% else %}
-    <div class="badge text-bg-secondary fs-6 px-3 py-2">
-      <i class="bi bi-calendar-x me-1"></i>Sin convocatoria activa
-    </div>
-    {% endif %}
-  </div>
 
-  <!-- ── Estado actual ──────────────────────────── -->
-  {% if evaluacion %}
-  <div class="status-card {{ evaluacion.estado }} mb-4">
-    <div class="row align-items-center">
-      <div class="col-md-7">
-        <h4 class="fw-bold mb-1">
-          {% if evaluacion.estado == 'aprobado' %}
-            🎉 ¡Felicitaciones! Tu beca fue aprobada
-          {% elif evaluacion.estado == 'rechazado' %}
-            😔 Tu solicitud fue rechazada
-          {% elif evaluacion.estado == 'evaluado' %}
-            📋 Tu solicitud ha sido evaluada
+    <!-- Mensaje de Estado / Resultados de Selección -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      {% if solicitud_beca and solicitud_beca.estado == 'Beca Asignada' %}
+        <div class="card-body p-4 bg-success text-white text-center">
+          <div class="fs-2 mb-2"><i class="bi bi-trophy-fill text-warning"></i></div>
+          <h5 class="fw-bold mb-1">¡Felicidades! Beca Asignada</h5>
+          <p class="mb-0 small opacity-90">Has sido seleccionado como beneficiario de la Beca Albergue.</p>
+        </div>
+      {% elif solicitud_beca and solicitud_beca.estado == 'No seleccionado' %}
+        <div class="card-body p-4 bg-secondary text-white text-center">
+          <div class="fs-2 mb-2"><i class="bi bi-x-circle-fill"></i></div>
+          <h5 class="fw-bold mb-1">Selección Finalizada</h5>
+          <p class="mb-0 small opacity-90">No has sido seleccionado dentro de los cupos de esta convocatoria.</p>
+        </div>
+      {% else %}
+        {% if estado_postulacion.is_completa %}
+          <div class="card-body p-4 text-center text-white" style="background: linear-gradient(135deg, #1b365d 0%, #10b981 100%);">
+            <div class="fs-2 mb-2 text-warning"><i class="bi bi-check-circle-fill"></i></div>
+            <h5 class="fw-bold mb-1">Postulación Completada</h5>
+            <p class="mb-0 small opacity-90">Tus datos están guardados, completos y listos para la optimización de cupos.</p>
+            <div class="mt-3">
+              <a href="{% url 'postulantes:mi_postulacion' %}" class="btn btn-sm btn-light rounded-pill px-4 fw-bold text-dark">
+                <i class="bi bi-eye-fill me-1"></i> Ver Declaración Jurada
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div class="card-body p-4 bg-warning-subtle border-start border-warning border-4 text-dark">
+            <div class="d-flex gap-3">
+              <div class="fs-2 text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+              <div>
+                <h5 class="fw-bold mb-1">Ficha de Postulación Incompleta</h5>
+                <p class="mb-0 small text-muted">Para entrar en el proceso de selección y optimización de cupos, es obligatorio que completes todos los pasos del Registro Académico y Ficha Socioeconómica detallados abajo.</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <!-- Tarjeta de Progreso Principal -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-white py-3 border-0">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-clipboard-check me-2 text-primary"></i>Pasos Requeridos</h5>
+          {% if estado_postulacion.is_completa %}
+            <span class="badge bg-success rounded-pill px-3">Completado</span>
           {% else %}
-            ⏳ Tu solicitud está en evaluación
+            <span class="badge bg-warning text-dark rounded-pill px-3">En Proceso</span>
           {% endif %}
-        </h4>
-        <p class="text-muted mb-0">
-          Estado: <span class="badge text-bg-{{ evaluacion.estado_color }} ms-1">
-            {{ evaluacion.get_estado_display }}
-          </span>
-        </p>
-      </div>
-      {% if evaluacion.puntaje_total %}
-      <div class="col-md-5 text-md-end mt-3 mt-md-0">
-        <div class="text-muted small mb-1">Puntaje total</div>
-        <div class="display-5 fw-black" style="color:var(--primary)">
-          {{ evaluacion.puntaje_total|floatformat:1 }}
-          <span class="fs-4 text-muted fw-normal">/ 100</span>
-        </div>
-        <div class="row g-2 mt-1">
-          <div class="col-6">
-            <div class="bg-light rounded p-2 text-center">
-              <div class="small text-muted">Académico</div>
-              <div class="fw-bold">{{ evaluacion.puntaje_academico|floatformat:1 }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="bg-light rounded p-2 text-center">
-              <div class="small text-muted">Socioeconómico</div>
-              <div class="fw-bold">{{ evaluacion.puntaje_socioeconomico|floatformat:1 }}</div>
-            </div>
-          </div>
         </div>
       </div>
-      {% endif %}
+      <div class="card-body px-4 pb-4 pt-0">
+        <!-- Barra de Progreso -->
+        <div class="progress mb-4" style="height: 12px; border-radius: 30px;">
+          <div class="progress-bar {% if estado_postulacion.is_completa %}bg-success{% else %}bg-primary{% endif %} progress-bar-striped progress-bar-animated" role="progressbar" style="width: {{ progreso }}%; border-radius: 30px;" aria-valuenow="{{ progreso }}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <!-- Paso 1: Ficha Socioeconómica -->
+        <div class="p-3 mb-3 {% if estado_postulacion.ficha_completa %}bg-light-success border-success-subtle{% else %}bg-light border-light-subtle{% endif %} rounded-4 border d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div class="d-flex align-items-center">
+            <div class="fs-2 me-3 d-flex align-items-center justify-content-center">
+              {% if estado_postulacion.ficha_completa %}
+                <i class="bi bi-check-circle-fill text-success"></i>
+              {% else %}
+                <i class="bi bi-file-earmark-text text-secondary animate-pulse"></i>
+              {% endif %}
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h6 class="fw-bold mb-0 text-dark">Paso 1: Ficha Socioeconómica</h6>
+              </div>
+              <p class="text-muted small mb-0">Datos socioeconómicos de tu familia, residencia, vivienda y documentos de respaldo.</p>
+            </div>
+          </div>
+          <div>
+            {% if estado_postulacion.ficha_completa %}
+              <a href="{% url 'postulantes:ficha_socioeconomica' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+                <i class="bi bi-pencil-square me-1"></i> Editar Ficha
+              </a>
+            {% else %}
+              <a href="{% url 'postulantes:ficha_socioeconomica' %}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow glow-effect">
+                Completar Ficha
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Paso 2: Registro de Materias -->
+        <div class="p-3 mb-3 {% if estado_postulacion.tiene_materias %}bg-light-success border-success-subtle{% else %}bg-light border-light-subtle{% endif %} rounded-4 border d-flex align-items-center justify-content-between flex-wrap gap-3">
+          <div class="d-flex align-items-center">
+            <div class="fs-2 me-3 d-flex align-items-center justify-content-center">
+              {% if estado_postulacion.tiene_materias %}
+                <i class="bi bi-check-circle-fill text-success"></i>
+              {% else %}
+                <i class="bi bi-mortarboard text-secondary animate-pulse"></i>
+              {% endif %}
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h6 class="fw-bold mb-0 text-dark">Paso 2: Materias Cursadas</h6>
+              </div>
+              <p class="text-muted small mb-0">Registrar al menos una materia cursada el semestre pasado con sigla, nombre y nota final.</p>
+            </div>
+          </div>
+          <div>
+            {% if estado_postulacion.tiene_materias %}
+              <a href="{% url 'postulantes:registro_materias' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
+                <i class="bi bi-pencil-square me-1"></i> Editar Materias
+              </a>
+            {% else %}
+              <a href="{% url 'postulantes:registro_materias' %}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow {% if estado_postulacion.ficha_completa %}glow-effect{% endif %}">
+                Registrar Materias
+              </a>
+            {% endif %}
+          </div>
+        </div>
+
+
+
+      </div>
     </div>
+
   </div>
-  {% endif %}
-
-  <!-- ── Progreso del formulario ────────────────── -->
-  <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-clipboard-check me-2 text-primary"></i>Progreso de tu postulación</span>
-      <span class="badge text-bg-primary">{{ progreso }}% completado</span>
-    </div>
-    <div class="card-body">
-      <!-- Barra de progreso -->
-      <div class="progress mb-4" style="height:10px; border-radius:30px">
-        <div class="progress-bar bg-success" style="width:{{ progreso }}%; border-radius:30px;
-             transition:width .8s ease"></div>
-      </div>
-
-      <!-- Pasos -->
-      <div class="row g-3">
-
-        <!-- Paso 1: Datos personales -->
-        <div class="col-md-4">
-          <div class="card border-0 bg-light h-100">
-            <div class="card-body text-center p-3">
-              {% if tiene_datos_personales %}
-              <div class="text-success fs-2 mb-2"><i class="bi bi-check-circle-fill"></i></div>
-              {% else %}
-              <div class="text-warning fs-2 mb-2"><i class="bi bi-1-circle-fill"></i></div>
-              {% endif %}
-              <h6 class="fw-semibold mb-1">Datos Personales</h6>
-              <p class="small text-muted mb-3">Nombre, cédula, contacto y dirección</p>
-              {% if postulante and not postulante.puede_editar %}
-              <span class="badge text-bg-secondary">Cerrado</span>
-              {% else %}
-              <a href="{% url 'postulantes:datos_personales' %}"
-                 class="btn btn-sm {% if tiene_datos_personales %}btn-outline-success{% else %}btn-primary{% endif %}">
-                {% if tiene_datos_personales %}Editar{% else %}Completar{% endif %}
-              </a>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Paso 2: Datos académicos -->
-        <div class="col-md-4">
-          <div class="card border-0 bg-light h-100">
-            <div class="card-body text-center p-3">
-              {% if tiene_datos_academicos %}
-              <div class="text-success fs-2 mb-2"><i class="bi bi-check-circle-fill"></i></div>
-              {% elif tiene_datos_personales %}
-              <div class="text-warning fs-2 mb-2"><i class="bi bi-2-circle-fill"></i></div>
-              {% else %}
-              <div class="text-muted fs-2 mb-2"><i class="bi bi-2-circle"></i></div>
-              {% endif %}
-              <h6 class="fw-semibold mb-1">Datos Académicos</h6>
-              <p class="small text-muted mb-3">Institución, carrera, promedio y créditos</p>
-              {% if not tiene_datos_personales %}
-              <span class="badge text-bg-secondary">Completa el paso 1 primero</span>
-              {% elif postulante and not postulante.puede_editar and tiene_datos_academicos %}
-              <span class="badge text-bg-secondary">Cerrado</span>
-              {% else %}
-              <a href="{% url 'postulantes:datos_academicos' %}"
-                 class="btn btn-sm {% if tiene_datos_academicos %}btn-outline-success{% else %}btn-primary{% endif %}">
-                {% if tiene_datos_academicos %}Editar{% else %}Completar{% endif %}
-              </a>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Paso 3: Datos socioeconómicos -->
-        <div class="col-md-4">
-          <div class="card border-0 bg-light h-100">
-            <div class="card-body text-center p-3">
-              {% if tiene_datos_socio %}
-              <div class="text-success fs-2 mb-2"><i class="bi bi-check-circle-fill"></i></div>
-              {% elif tiene_datos_academicos %}
-              <div class="text-warning fs-2 mb-2"><i class="bi bi-3-circle-fill"></i></div>
-              {% else %}
-              <div class="text-muted fs-2 mb-2"><i class="bi bi-3-circle"></i></div>
-              {% endif %}
-              <h6 class="fw-semibold mb-1">Datos Socioeconómicos</h6>
-              <p class="small text-muted mb-3">Ingresos, estrato y composición del hogar</p>
-              {% if not tiene_datos_academicos %}
-              <span class="badge text-bg-secondary">Completa el paso 2 primero</span>
-              {% elif postulante and not postulante.puede_editar and tiene_datos_socio %}
-              <span class="badge text-bg-secondary">Cerrado</span>
-              {% else %}
-              <a href="{% url 'postulantes:datos_socioeconomicos' %}"
-                 class="btn btn-sm {% if tiene_datos_socio %}btn-outline-success{% else %}btn-primary{% endif %}">
-                {% if tiene_datos_socio %}Editar{% else %}Completar{% endif %}
-              </a>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {% if progreso == 100 and not evaluacion %}
-      <div class="alert alert-success border-0 rounded-3 mt-3 mb-0">
-        <i class="bi bi-check-all me-2"></i>
-        <strong>¡Formulario completo!</strong> Tu postulación está siendo procesada por el equipo evaluador.
-      </div>
-      {% elif progreso < 100 and convocatoria_activa %}
-      <div class="alert alert-warning border-0 rounded-3 mt-3 mb-0 small">
-        <i class="bi bi-clock me-2"></i>
-        Completa los 3 pasos antes del <strong>{{ convocatoria_activa.fecha_fin|date:"d/m/Y" }}</strong>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
 </div>
+
+<style>
+  .max-width-800 {
+    max-width: 800px;
+  }
+  .bg-light-success {
+    background-color: rgba(25, 135, 84, 0.06);
+  }
+  .border-success-subtle {
+    border-color: rgba(25, 135, 84, 0.15) !important;
+  }
+  .animate-pulse {
+    animation: pulse 2s infinite alternate;
+    display: inline-block;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.15); }
+  }
+  .glow-effect {
+    box-shadow: 0 0 12px rgba(13, 110, 253, 0.45);
+    animation: button-glow 2s infinite alternate;
+  }
+  @keyframes button-glow {
+    0% { box-shadow: 0 0 5px rgba(13, 110, 253, 0.3); }
+    100% { box-shadow: 0 0 15px rgba(13, 110, 253, 0.65); }
+  }
+</style>
 {% endblock %}

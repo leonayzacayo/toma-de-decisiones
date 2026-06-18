@@ -13,7 +13,7 @@ django.setup()
 from django.contrib.auth.models import User
 from apps.usuarios.models import PerfilUsuario
 from apps.convocatorias.models import Convocatoria
-from apps.postulantes.models import Postulante, DatosAcademicos, DatosSocioeconomicos
+from apps.postulantes.models import Postulante, FichaSocioeconomica
 from apps.evaluaciones.models import Evaluacion
 
 def create_demo():
@@ -153,18 +153,14 @@ def create_demo():
                 datos_completos=True
             )
 
-            DatosAcademicos.objects.create(
+            FichaSocioeconomica.objects.create(
                 postulante=postulante,
                 institucion=p['institucion'],
                 carrera=p['carrera'],
                 semestre=p['semestre'],
                 promedio=p['promedio'],
                 creditos_aprobados=p['creditos_aprobados'],
-                creditos_totales=p['creditos_totales']
-            )
-
-            DatosSocioeconomicos.objects.create(
-                postulante=postulante,
+                creditos_totales=p['creditos_totales'],
                 ingreso_familiar=p['ingreso'],
                 estrato=p['estrato'],
                 num_hermanos_universidad=p['hermanos'],

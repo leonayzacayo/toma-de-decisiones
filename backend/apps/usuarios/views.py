@@ -1,14 +1,19 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.views.generic import CreateView, ListView, UpdateView, TemplateView
+from django.views import View
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.utils.crypto import get_random_string
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import PerfilUsuario, LogAccion
 from .forms import RegistroPostulanteForm, CrearUsuarioStaffForm, EditarUsuarioForm
-from .decoradores import AdministradorRequeridoMixin, LoginRequeridoMixin
+from .decoradores import AdministradorRequeridoMixin, LoginRequeridoMixin, EvaluadorRequeridoMixin
+from apps.postulantes.models import Postulante
 
 
 # ──────────────────────────────────────────────
@@ -21,10 +26,16 @@ class LoginPersonalizadoView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
+        
+        # Primero verificar si es evaluador o administrador
         if hasattr(user, 'perfil'):
-            if user.perfil.es_administrador() or user.perfil.es_evaluador():
+            if user.perfil.es_evaluador() or user.perfil.es_administrador():
                 return reverse_lazy('evaluaciones:lista')
+
+        # Si es un estudiante (postulante)
+        if hasattr(user, 'postulante'):
             return reverse_lazy('postulantes:panel')
+                
         return reverse_lazy('postulantes:panel')
 
     def form_valid(self, form):
@@ -57,14 +68,12 @@ class LogoutPersonalizadoView(LogoutView):
 class RegistroPostulanteView(CreateView):
     form_class = RegistroPostulanteForm
     template_name = 'usuarios/registro.html'
-    success_url = reverse_lazy('postulantes:panel')
+    success_url = reverse_lazy('usuarios:login')
 
     def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        messages.success(self.request, '¡Registro exitoso! Bienvenido al sistema de becas.')
-        LogAccion.objects.create(usuario=user, accion='registro')
-        return redirect(self.success_url)
+        response = super().form_valid(form)
+        messages.success(self.request, '¡Registro exitoso! Ya puedes iniciar sesión con tu Registro Universitario.')
+        return response
 
 
 # ──────────────────────────────────────────────
@@ -110,7 +119,6 @@ class EditarUsuarioView(AdministradorRequeridoMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        # Actualizar rol
         rol = self.request.POST.get('rol')
         if rol and hasattr(self.object, 'perfil'):
             self.object.perfil.rol = rol
@@ -125,7 +133,6 @@ class EditarUsuarioView(AdministradorRequeridoMixin, UpdateView):
 
 
 class ToggleUsuarioView(AdministradorRequeridoMixin, TemplateView):
-    """Activar / desactivar un usuario."""
     def post(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         user.is_active = not user.is_active

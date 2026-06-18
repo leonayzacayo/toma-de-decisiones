@@ -6,7 +6,7 @@ app_name = 'usuarios'
 urlpatterns = [
     path('login/',    views.LoginPersonalizadoView.as_view(),  name='login'),
     path('logout/',   views.LogoutPersonalizadoView.as_view(), name='logout'),
-    path('registro/', views.RegistroPostulanteView.as_view(),  name='registro'),
+    path('registro/', views.RegistroPostulanteView.as_view(), name='registro'),
 
     # Gestión de usuarios (administrador)
     path('gestion/',              views.GestionUsuariosView.as_view(),   name='gestion'),
@@ -17,3 +17,4 @@ urlpatterns = [
     # Logs
     path('logs/', views.LogsView.as_view(), name='logs'),
 ]
+

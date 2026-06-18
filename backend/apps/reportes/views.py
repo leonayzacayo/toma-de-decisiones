@@ -11,8 +11,8 @@ from openpyxl.utils import get_column_letter
 
 from apps.usuarios.decoradores import EvaluadorRequeridoMixin
 from apps.usuarios.models import LogAccion
-from apps.postulantes.models import Postulante
-from apps.evaluaciones.models import Evaluacion
+from apps.postulantes.models import Postulante, FichaSocioeconomica, SolicitudBeca
+from apps.parametros.models import OpcionSocioeconomica
 
 
 # ──────────────────────────────────────────────
@@ -26,34 +26,61 @@ class DashboardReportesView(EvaluadorRequeridoMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
 
         # Totales generales
-        ctx['total_postulantes'] = Postulante.objects.count()
-        ctx['total_evaluados'] = Evaluacion.objects.exclude(estado='pendiente').count()
-        ctx['total_aprobados'] = Evaluacion.objects.filter(estado='aprobado').count()
-        ctx['total_rechazados'] = Evaluacion.objects.filter(estado='rechazado').count()
-        ctx['total_pendientes'] = Evaluacion.objects.filter(estado='pendiente').count()
+        ctx['solicitudes_pendientes_count'] = SolicitudBeca.objects.filter(estado='Pendiente').count()
+        ctx['solicitudes_hoy_count'] = Postulante.objects.filter(
+            fecha_registro__date=timezone.now().date()
+        ).count()
+        
+        total_p = Postulante.objects.count()
+        completados_count = Postulante.objects.filter(ficha_completada=True).count()
+        incompletos_count = total_p - completados_count
+        
+        ctx['total_postulantes'] = total_p
+        ctx['completados_count'] = completados_count
+        ctx['incompletos_count'] = incompletos_count
+        
+        if total_p > 0:
+            ctx['porcentaje_completadas'] = round((completados_count / total_p) * 100, 1)
+            ctx['porcentaje_incompletas'] = round((incompletos_count / total_p) * 100, 1)
+        else:
+            ctx['porcentaje_completadas'] = 0.0
+            ctx['porcentaje_incompletas'] = 0.0
 
-        # Promedio de puntajes
-        stats = Evaluacion.objects.exclude(estado='pendiente').aggregate(
+        ctx['completadas'] = SolicitudBeca.objects.filter(postulante__ficha_completada=True, rechazado=False).count()
+        ctx['asignadas'] = SolicitudBeca.objects.filter(estado='Beca Asignada', rechazado=False).count()
+        ctx['no_seleccionados'] = SolicitudBeca.objects.filter(estado='No seleccionado', rechazado=False).count()
+        
+        # Promedio de puntajes (Z) de todos los postulantes activos con ficha completa
+        stats = SolicitudBeca.objects.filter(postulante__ficha_completada=True, rechazado=False).aggregate(
             avg=Avg('puntaje_total'),
             maximo=Max('puntaje_total'),
             minimo=Min('puntaje_total'),
         )
-        ctx['puntaje_promedio'] = round(stats['avg'] or 0, 2)
+        ctx['promedio_z'] = round(stats['avg'] or 0, 2)
         ctx['puntaje_max'] = stats['maximo'] or 0
         ctx['puntaje_min'] = stats['minimo'] or 0
 
-        # Distribución por estrato (para Chart.js)
+        # Para las tarjetas o compatibilidad
+        ctx['total_evaluados'] = SolicitudBeca.objects.exclude(estado='Pendiente').filter(rechazado=False).count()
+        ctx['total_aprobados'] = ctx['asignadas']
+        ctx['total_rechazados'] = ctx['no_seleccionados']
+        ctx['total_pendientes'] = ctx['completadas']
+
+        # Distribución por rango de ingresos (estratos)
+        opciones_ingresos = OpcionSocioeconomica.objects.filter(variable='rango_ingresos')
         estrato_data = []
-        for estrato in range(1, 7):
+        for opt in opciones_ingresos:
+            rango_val = opt.opcion_texto
             total = Postulante.objects.filter(
-                datos_socioeconomicos__estrato=estrato
+                ficha_socioeconomica__rango_ingresos=rango_val
             ).count()
-            aprobados = Evaluacion.objects.filter(
-                postulante__datos_socioeconomicos__estrato=estrato,
-                estado='aprobado',
+            aprobados = SolicitudBeca.objects.filter(
+                postulante__ficha_socioeconomica__rango_ingresos=rango_val,
+                estado='Beca Asignada',
+                rechazado=False
             ).count()
             estrato_data.append({
-                'estrato': estrato,
+                'estrato': opt.opcion_texto,
                 'total': total,
                 'aprobados': aprobados,
             })
@@ -61,18 +88,33 @@ class DashboardReportesView(EvaluadorRequeridoMixin, TemplateView):
 
         # Distribución de estados (para gráfica de donut)
         ctx['estado_data'] = {
-            'labels': ['Pendiente', 'Aprobado', 'Rechazado'],
+            'labels': ['Completada', 'Beca Asignada', 'No seleccionado'],
             'values': [
-                ctx['total_pendientes'],
-                ctx['total_aprobados'],
-                ctx['total_rechazados'],
+                ctx['completadas'],
+                ctx['asignadas'],
+                ctx['no_seleccionados'],
             ],
         }
 
-        # Top 10 postulantes por puntaje
-        ctx['top_postulantes'] = Evaluacion.objects.filter(
-            estado='aprobado'
-        ).select_related('postulante').order_by('-puntaje_total')[:10]
+        # Distribución por facultad
+        facultad_query = SolicitudBeca.objects.filter(
+            postulante__ficha_completada=True, 
+            rechazado=False
+        ).values('postulante__facultad').annotate(
+            total=Count('id')
+        ).order_by('-total')
+
+        facultad_labels = []
+        facultad_values = []
+        for item in facultad_query:
+            fac = item['postulante__facultad'] or 'Sin registrar'
+            facultad_labels.append(fac)
+            facultad_values.append(item['total'])
+        
+        ctx['facultad_data'] = {
+            'labels': facultad_labels,
+            'values': facultad_values,
+        }
 
         return ctx
 
@@ -91,37 +133,38 @@ class ExportarCSVView(EvaluadorRequeridoMixin, TemplateView):
 
         writer = csv.writer(response)
         writer.writerow([
-            'Cédula', 'Nombre Completo', 'Email', 'Institución', 'Carrera',
-            'Semestre', 'Promedio', 'Créditos Aprobados',
-            'Ingreso Familiar', 'Estrato',
+            'Cédula', 'Nombre Completo', 'Email', 'Carrera',
+            'Celular', 'Dependencia', 'Rango Ingresos', 'Procedencia',
             'Puntaje Académico', 'Puntaje Socioeconómico', 'Puntaje Total',
-            'Estado', 'Fecha Evaluación',
+            'Estado', 'Fecha Asignación',
         ])
 
-        postulantes = Postulante.objects.select_related(
-            'user', 'datos_academicos', 'datos_socioeconomicos', 'evaluacion'
-        ).order_by('-evaluacion__puntaje_total')
+        solicitudes = SolicitudBeca.objects.select_related(
+            'postulante__user',
+            'postulante__ficha_socioeconomica'
+        ).order_by('-puntaje_total')
 
-        for p in postulantes:
-            acad = getattr(p, 'datos_academicos', None)
-            socio = getattr(p, 'datos_socioeconomicos', None)
-            ev = getattr(p, 'evaluacion', None)
+        for sol in solicitudes:
+            p = sol.postulante
+            user = p.user
+            ficha = getattr(p, 'ficha_socioeconomica', None)
+            
+            carrera = p.carrera
+
             writer.writerow([
                 p.cedula,
-                p.nombre_completo,
-                p.user.email,
-                acad.institucion if acad else '',
-                acad.carrera if acad else '',
-                acad.semestre if acad else '',
-                acad.promedio if acad else '',
-                acad.creditos_aprobados if acad else '',
-                socio.ingreso_familiar if socio else '',
-                socio.estrato if socio else '',
-                ev.puntaje_academico if ev else '',
-                ev.puntaje_socioeconomico if ev else '',
-                ev.puntaje_total if ev else '',
-                ev.get_estado_display() if ev else 'Pendiente',
-                ev.fecha_evaluacion.strftime('%d/%m/%Y %H:%M') if ev and ev.fecha_evaluacion else '',
+                user.get_full_name() or p.nombre_completo,
+                user.email,
+                carrera,
+                p.telefono,
+                ficha.dependencia if ficha else '',
+                ficha.rango_ingresos if ficha else '',
+                ficha.procedencia if ficha else '',
+                sol.puntaje_academico or 0.0,
+                sol.puntaje_socioeconomico or 0.0,
+                sol.puntaje_total or 0.0,
+                sol.estado,
+                sol.fecha_asignacion.strftime('%d/%m/%Y %H:%M') if sol.fecha_asignacion else '',
             ])
 
         LogAccion.objects.create(usuario=request.user, accion='exportar',
@@ -141,10 +184,6 @@ class ExportarExcelView(EvaluadorRequeridoMixin, TemplateView):
 
         # ── Estilos ────────────────────────────────
         azul = '1e3a5f'
-        verde = '27ae60'
-        rojo = 'e74c3c'
-        amarillo = 'f39c12'
-
         header_font = Font(name='Calibri', bold=True, color='FFFFFF', size=11)
         header_fill = PatternFill('solid', fgColor=azul)
         center = Alignment(horizontal='center', vertical='center')
@@ -153,11 +192,10 @@ class ExportarExcelView(EvaluadorRequeridoMixin, TemplateView):
 
         headers = [
             ('Cédula', 16), ('Nombre Completo', 30), ('Email', 28),
-            ('Institución', 25), ('Carrera', 25), ('Semestre', 10),
-            ('Promedio', 12), ('Créditos', 10),
-            ('Ingreso Familiar', 18), ('Estrato', 10),
+            ('Carrera', 25), ('Celular', 15),
+            ('Dependencia', 20), ('Rango Ingresos', 25),
             ('Pts. Académico', 15), ('Pts. Socioecon.', 15), ('Pts. Total', 12),
-            ('Estado', 14), ('Fecha Evaluación', 20),
+            ('Estado', 18), ('Fecha Asignación', 20),
         ]
 
         # ── Cabecera ───────────────────────────────
@@ -172,44 +210,46 @@ class ExportarExcelView(EvaluadorRequeridoMixin, TemplateView):
         ws.row_dimensions[1].height = 25
 
         # ── Datos ──────────────────────────────────
-        postulantes = Postulante.objects.select_related(
-            'user', 'datos_academicos', 'datos_socioeconomicos', 'evaluacion'
-        ).order_by('-evaluacion__puntaje_total')
+        solicitudes = SolicitudBeca.objects.select_related(
+            'postulante__user',
+            'postulante__ficha_socioeconomica'
+        ).order_by('-puntaje_total')
 
         fill_aprobado = PatternFill('solid', fgColor='d5f5e3')
         fill_rechazado = PatternFill('solid', fgColor='fadbd8')
         fill_pendiente = PatternFill('solid', fgColor='fef9e7')
 
-        for row_idx, p in enumerate(postulantes, 2):
-            acad = getattr(p, 'datos_academicos', None)
-            socio = getattr(p, 'datos_socioeconomicos', None)
-            ev = getattr(p, 'evaluacion', None)
+        for row_idx, sol in enumerate(solicitudes, 2):
+            p = sol.postulante
+            user = p.user
+            ficha = getattr(p, 'ficha_socioeconomica', None)
 
-            estado = ev.get_estado_display() if ev else 'Pendiente'
+            carrera = p.carrera
+            estado = sol.estado
+            
             fila_fill = (
-                fill_aprobado if ev and ev.estado == 'aprobado'
-                else fill_rechazado if ev and ev.estado == 'rechazado'
+                fill_aprobado if estado == 'Beca Asignada'
+                else fill_rechazado if estado == 'No seleccionado'
                 else fill_pendiente
             )
 
             row_data = [
-                p.cedula, p.nombre_completo, p.user.email,
-                acad.institucion if acad else '', acad.carrera if acad else '',
-                acad.semestre if acad else '', float(acad.promedio) if acad else '',
-                acad.creditos_aprobados if acad else '',
-                float(socio.ingreso_familiar) if socio else '', socio.estrato if socio else '',
-                float(ev.puntaje_academico) if ev else '',
-                float(ev.puntaje_socioeconomico) if ev else '',
-                float(ev.puntaje_total) if ev else '',
+                p.cedula, user.get_full_name() or p.nombre_completo, user.email,
+                carrera, p.telefono,
+                ficha.dependencia if ficha else '',
+                ficha.rango_ingresos if ficha else '',
+                float(sol.puntaje_academico) if sol.puntaje_academico is not None else 0.0,
+                float(sol.puntaje_socioeconomico) if sol.puntaje_socioeconomico is not None else 0.0,
+                float(sol.puntaje_total) if sol.puntaje_total is not None else 0.0,
                 estado,
-                ev.fecha_evaluacion.strftime('%d/%m/%Y %H:%M') if ev and ev.fecha_evaluacion else '',
+                sol.fecha_asignacion.strftime('%d/%m/%Y %H:%M') if sol.fecha_asignacion else '',
             ]
 
             for col_idx, value in enumerate(row_data, 1):
                 cell = ws.cell(row=row_idx, column=col_idx, value=value)
                 cell.border = border
                 cell.fill = fila_fill
-                if col_idx in (7, 11, 12, 13):
+                if col_idx in (8, 9, 10):
                     cell.number_format = '#,##0.00'
 
         # ── Congelar cabecera ──────────────────────
@@ -219,9 +259,9 @@ class ExportarExcelView(EvaluadorRequeridoMixin, TemplateView):
         ws2 = wb.create_sheet('Estadísticas')
         ws2.append(['Métrica', 'Valor'])
         ws2.append(['Total postulantes', Postulante.objects.count()])
-        ws2.append(['Aprobados', Evaluacion.objects.filter(estado='aprobado').count()])
-        ws2.append(['Rechazados', Evaluacion.objects.filter(estado='rechazado').count()])
-        ws2.append(['Pendientes', Evaluacion.objects.filter(estado='pendiente').count()])
+        ws2.append(['Beca Asignada', SolicitudBeca.objects.filter(estado='Beca Asignada').count()])
+        ws2.append(['No seleccionado', SolicitudBeca.objects.filter(estado='No seleccionado').count()])
+        ws2.append(['Postulación completada', SolicitudBeca.objects.filter(estado='Postulación completada').count()])
 
         output = io.BytesIO()
         wb.save(output)

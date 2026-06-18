@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Beca Albergue Universitario | Facultad Integral de los Valles Cruceños{% endblock %}
 
 {% block main_class %}{% endblock %}
@@ -10,17 +11,17 @@
     scroll-behavior: smooth;
   }
   :root {
-    --uagrm-blue: #0d233a;
-    --uagrm-red: #b30f0f;
-    --uagrm-gold: #d4af37;
-    --bg-navy: #0d233a;
-    --bg-navy-light: #15304d;
-    --accent-gold: #d4af37;
+    --uagrm-blue: #003366;
+    --uagrm-red: #b30000;
+    --uagrm-gold: #FFD700;
+    --bg-navy: #002244;
+    --bg-navy-light: #003366;
+    --accent-gold: #FFD700;
   }
 
-  /* Override theme colors for UAGRM shield palette */
+  /* Override theme colors for UAGRM palette */
   .hero-section {
-    background: linear-gradient(135deg, var(--uagrm-blue) 0%, #1a3c61 100%);
+    background: linear-gradient(135deg, var(--uagrm-blue) 0%, #001a33 100%);
     position: relative;
     overflow: hidden;
     border-bottom: 5px solid var(--uagrm-red);
@@ -29,45 +30,8 @@
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.15) 0%, transparent 50%);
+    background: radial-gradient(circle at 80% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 50%);
     pointer-events: none;
-  }
-  
-  /* Custom CSS Emblem for Faculty Logo */
-  .shield-emblem {
-    width: 60px;
-    height: 70px;
-    background: linear-gradient(to right, var(--uagrm-blue) 50%, var(--uagrm-red) 50%);
-    border: 3px solid #fff;
-    border-radius: 8px 8px 30px 30px;
-    position: relative;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .shield-emblem::before {
-    content: 'U';
-    font-family: 'Inter', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 900;
-    color: #fff;
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.4);
-    position: absolute;
-    z-index: 2;
-  }
-  .stars-container {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    z-index: 3;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  .stars-container i {
-    color: var(--uagrm-gold);
-    font-size: 8px;
   }
 
   .section-title-divider {
@@ -184,23 +148,7 @@
   <div class="container px-4">
     <div class="row align-items-center g-5">
       <div class="col-lg-8 text-center text-lg-start">
-        <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-3 mb-3 flex-wrap">
-          <!-- CSS Emblem representing the Faculty Logo -->
-          <div class="shield-emblem">
-            <div class="stars-container">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-            </div>
-          </div>
-          <div>
-            <span class="badge bg-danger text-white fw-bold px-3 py-2 text-uppercase tracking-wider mb-1">U.A.G.R.M.</span>
-            <div class="small fw-semibold text-white-50 text-uppercase">Facultad Integral de los Valles Cruceños</div>
-          </div>
-        </div>
-        
+
         <h1 class="display-4 fw-extrabold mb-3">
           Convocatoria <br><span class="gold-text">Beca Albergue Universitario</span>
         </h1>
@@ -214,7 +162,7 @@
             </a>
           {% else %}
             <a href="{% url 'usuarios:registro' %}" class="btn btn-gold btn-lg px-4 py-3 fw-bold shadow-lg">
-              <i class="bi bi-folder-plus me-2"></i>Iniciar Postulación
+              <i class="bi bi-rocket-takeoff me-2"></i>Iniciar Postulación
             </a>
             <a href="#detalles" class="btn btn-outline-light btn-lg px-4 py-3">
               Ver Convocatoria
@@ -223,18 +171,9 @@
         </div>
       </div>
       <div class="col-lg-4 d-none d-lg-block text-center">
-        <!-- Generación de una estructura visual similar al escudo en tamaño grande -->
-        <div class="d-inline-block p-4 bg-white-10 rounded-circle" style="backdrop-filter: blur(10px);">
-          <div class="shield-emblem" style="width: 140px; height: 165px; border-radius: 15px 15px 70px 70px; border-width: 6px;">
-            <div class="stars-container" style="gap: 5px;">
-              <i class="bi bi-star-fill" style="font-size: 14px;"></i>
-              <i class="bi bi-star-fill" style="font-size: 14px;"></i>
-              <i class="bi bi-star-fill" style="font-size: 14px;"></i>
-              <i class="bi bi-star-fill" style="font-size: 14px;"></i>
-              <i class="bi bi-star-fill" style="font-size: 14px;"></i>
-            </div>
-            <span style="font-family: 'Inter', sans-serif; font-size: 5rem; font-weight: 900; color: #fff; text-shadow: 3px 3px 0px rgba(0,0,0,0.4); margin-bottom: 10px;">U</span>
-          </div>
+        <!-- Logo grande a la derecha -->
+        <div class="d-inline-block p-4 rounded-circle" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+          <img src="{% static 'img/logo_uagrm.png' %}" alt="Logo UAGRM Escudo" style="height: 250px; width: auto; object-fit: contain; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));">
         </div>
       </div>
     </div>
@@ -359,59 +298,9 @@
       </div>
     </div>
 
-    <div class="mt-4 p-3 bg-danger-subtle text-danger border border-danger-subtle rounded-3 text-center fw-bold">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i> Importante: Presentar toda la documentación en un folder.
-    </div>
   </div>
 </section>
 
-<!-- ── Sección Cronograma ───────────────────────── -->
-<section id="cronograma" class="py-5 bg-light text-dark">
-  <div class="container px-4 py-4">
-    <div class="text-center mb-5">
-      <h2 class="h1 fw-bold text-blue">Fechas Importantes de la Convocatoria</h2>
-      <p class="text-muted">Proceso de recepción y publicación de resultados - Gestión 2026</p>
-      <div class="section-title-divider"></div>
-    </div>
-
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="ps-2">
-          
-          <div class="timeline-item">
-            <div class="timeline-badge"><i class="bi bi-folder-check"></i></div>
-            <div class="card border-0 shadow-sm p-4">
-              <h4 class="h6 fw-bold text-red mb-1">Recepción de Folders con Requisitos</h4>
-              <p class="small text-muted mb-2">Se realizará en horarios de oficina (08:00 - 12:00 y de 14:00 - 18:00) en la oficina de Decanato de la Facultad.</p>
-              <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
-                <span class="badge bg-navy text-white fw-bold">Desde el jueves 26 de febrero del 2026</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="timeline-item">
-            <div class="timeline-badge"><i class="bi bi-megaphone"></i></div>
-            <div class="card border-0 shadow-sm p-4">
-              <h4 class="h6 fw-bold text-blue mb-1">Publicación de Resultados Oficiales</h4>
-              <p class="small text-muted mb-2">La lista de los estudiantes aceptados en la Beca Albergue Universitario se lanzará de forma oficial.</p>
-              <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap">
-                <span class="badge bg-danger text-white fw-bold">Viernes 27 de febrero del 2026</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-        
-        <div class="text-center mt-4">
-          <p class="text-muted small">
-            Para mayor información, acércate a las oficinas del Decanato, ICU Estudiantes o Centros Internos de la Facultad.<br>
-            <strong>Vallegrande, febrero 2026.</strong>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ── Sección FAQ ──────────────────────────────── -->
 <section id="faq" class="py-5 text-white" style="background: var(--bg-navy-light);">
@@ -426,16 +315,6 @@
       <div class="col-lg-8">
         <div class="d-flex flex-column gap-3">
           
-          <div class="faq-card">
-            <button class="faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-              ¿Dónde debo entregar los documentos físicos?
-            </button>
-            <div id="faq1" class="collapse" data-bs-parent="#faq">
-              <div class="faq-body">
-                Toda la documentación solicitada en los prerrequisitos (de la letra a a la f) debe ser presentada dentro de un folder en la oficina de Decanato de la Facultad Integral de los Valles Cruceños.
-              </div>
-            </div>
-          </div>
 
           <div class="faq-card">
             <button class="faq-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
@@ -476,60 +355,4 @@
   </div>
 </section>
 
-<!-- ── Sección Contacto ─────────────────────────── -->
-<section id="contacto" class="py-5 bg-light text-dark">
-  <div class="container px-4 py-4">
-    <div class="text-center mb-5">
-      <h2 class="h1 fw-bold text-blue">Contacto y Consultas</h2>
-      <p class="text-muted">Si tienes dudas adicionales, puedes enviarnos un mensaje</p>
-      <div class="section-title-divider"></div>
-    </div>
-
-    <div class="row g-5 justify-content-center">
-      <div class="col-lg-5">
-        <div class="card border-0 shadow-sm p-4 h-100">
-          <h3 class="h5 fw-bold mb-4 text-blue">Canales de Atención</h3>
-          <div class="d-flex align-items-center mb-3">
-            <div class="bg-primary-subtle text-primary p-3 rounded-circle me-3">
-              <i class="bi bi-geo-alt-fill fs-5"></i>
-            </div>
-            <div>
-              <div class="text-muted small">Ubicación de Decanato</div>
-              <span class="fw-semibold text-blue">Planta Baja, Edificio Central, Vallegrande</span>
-            </div>
-          </div>
-          <div class="d-flex align-items-center mb-3">
-            <div class="bg-danger-subtle text-danger p-3 rounded-circle me-3">
-              <i class="bi bi-envelope-fill fs-5"></i>
-            </div>
-            <div>
-              <div class="text-muted small">Contacto del ICU</div>
-              <span class="fw-semibold text-blue">representacion.estudiantil@uagrm.edu.bo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-7">
-        <div class="card border-0 shadow-sm p-4">
-          <form method="post" novalidate>
-            {% csrf_token %}
-            <div class="mb-3">
-              <label for="contact_name" class="form-label fw-semibold">Nombre Completo</label>
-              <input type="text" name="nombre" id="contact_name" class="form-control" required placeholder="Ingresa tu nombre">
-            </div>
-            <div class="mb-3">
-              <label for="contact_email" class="form-label fw-semibold">Correo Electrónico</label>
-              <input type="email" name="correo" id="contact_email" class="form-control" required placeholder="ejemplo@correo.com">
-            </div>
-            <div class="mb-3">
-              <label for="contact_message" class="form-label fw-semibold">Mensaje o Consulta</label>
-              <textarea name="mensaje" id="contact_message" rows="4" class="form-control" required placeholder="Escribe tu consulta aquí..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-gold w-100 py-3 fw-bold"><i class="bi bi-send-fill me-2"></i>Enviar Mensaje</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 {% endblock %}

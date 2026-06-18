@@ -4,15 +4,16 @@
 
 /* ── Variables ────────────────────────────────── */
 :root {
-  --primary:      #1e3a5f;
-  --primary-light:#2d5a8e;
-  --accent:       #f0a500;
-  --accent-light: #fbbf24;
-  --success:      #27ae60;
+  --primary:      #001a4d; /* Azul de la UAGRM */
+  --primary-light:#002b80;
+  --secondary:    #b30000; /* Rojo de la UAGRM */
+  --accent:       #f1c40f; /* Dorado de las estrellas */
+  --accent-light: #f7dc6f;
+  --success:      #1e8449; /* Verde de los laureles */
   --danger:       #e74c3c;
   --warning:      #f39c12;
   --info:         #2980b9;
-  --bg:           #f0f4f8;
+  --bg:           #f4f6f9;
   --card-bg:      #ffffff;
   --text-muted:   #6b7280;
   --border:       #e2e8f0;
@@ -36,7 +37,7 @@ main { flex: 1; }
 
 /* ── Navbar ───────────────────────────────────── */
 #main-navbar {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   box-shadow: 0 2px 16px rgba(0,0,0,.18);
   padding: .6rem 0;
 }
@@ -207,7 +208,7 @@ main { flex: 1; }
 /* ── Auth pages ───────────────────────────────── */
 .auth-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary) 0%, #2d5a8e 50%, #1a4a7a 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   display: flex; align-items: center; justify-content: center;
   padding: 2rem 1rem;
 }

@@ -14,7 +14,7 @@
     </div>
 
     <!-- Formulario -->
-    <form method="post" id="login-form">
+    <form method="post" id="login-form" autocomplete="off">
       {% csrf_token %}
       {% if form.errors %}
       <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-3" role="alert">
@@ -25,15 +25,16 @@
       {% endif %}
 
       <div class="mb-3">
-        <label for="id_username" class="form-label">Correo electrónico</label>
+        <label for="id_username" class="form-label">Usuario / Registro Universitario</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-end-0">
-            <i class="bi bi-envelope text-muted"></i>
+            <i class="bi bi-person text-muted"></i>
           </span>
           <input type="text" name="username" id="id_username"
                  class="form-control border-start-0"
-                 placeholder="correo@ejemplo.com"
+                 placeholder="Ej: 202412345"
                  value="{{ form.username.value|default:'' }}"
+                 autocomplete="off"
                  autofocus required>
         </div>
       </div>
@@ -46,7 +47,9 @@
           </span>
           <input type="password" name="password" id="id_password"
                  class="form-control border-start-0"
-                 placeholder="••••••••" required>
+                 placeholder="••••••••" 
+                 autocomplete="new-password"
+                 required>
           <button class="btn btn-light border" type="button" id="togglePwd">
             <i class="bi bi-eye" id="eyeIcon"></i>
           </button>
@@ -64,7 +67,7 @@
     <div class="text-center">
       <p class="text-muted mb-0 small">¿No tienes cuenta?</p>
       <a href="{% url 'usuarios:registro' %}" class="btn btn-outline-primary btn-sm mt-2 px-4">
-        <i class="bi bi-person-plus me-1"></i>Registrarse como postulante
+        <i class="bi bi-person-plus me-1"></i>Registrarse
       </a>
     </div>
   </div>

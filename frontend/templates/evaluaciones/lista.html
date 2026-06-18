@@ -93,7 +93,7 @@
             <th>Institución</th>
             <th class="text-center">Promedio</th>
             <th class="text-center">Puntaje Total</th>
-            <th class="text-center">Estado</th>
+            <th class="text-center">Estado de Revisión</th>
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
@@ -113,14 +113,16 @@
             </td>
             <td class="text-muted">{{ postulante.cedula }}</td>
             <td class="text-muted small">
-              {% if postulante.datos_academicos %}
-              {{ postulante.datos_academicos.institucion|truncatechars:25 }}<br>
-              <span class="text-primary">{{ postulante.datos_academicos.carrera|truncatechars:20 }}</span>
+              {% if postulante.ficha_socioeconomica %}
+              {{ postulante.ficha_socioeconomica.institucion|truncatechars:25 }}<br>
+              <span class="text-primary">{{ postulante.ficha_socioeconomica.carrera|truncatechars:20 }}</span>
               {% else %}<span class="text-muted fst-italic">Sin datos</span>{% endif %}
             </td>
             <td class="text-center">
               {% if postulante.datos_academicos %}
-              <span class="fw-bold">{{ postulante.datos_academicos.promedio }}</span>
+                <span class="fw-bold">{{ postulante.datos_academicos.ppa|floatformat:2 }}</span>
+              {% elif postulante.ficha_socioeconomica.promedio %}
+                <span class="fw-bold">{{ postulante.ficha_socioeconomica.promedio }}</span>
               {% else %}—{% endif %}
             </td>
             <td class="text-center">
@@ -131,12 +133,20 @@
               {% else %}—{% endif %}
             </td>
             <td class="text-center">
-              {% if postulante.evaluacion %}
-              <span class="badge text-bg-{{ postulante.evaluacion.estado_color }}">
-                {{ postulante.evaluacion.get_estado_display }}
-              </span>
+              {% if postulante.solicitud_beca %}
+                {% if postulante.solicitud_beca.estado == 'Aprobado' %}
+                  <span class="badge bg-success text-white px-2 py-1 rounded-pill">Aprobado</span>
+                {% elif postulante.solicitud_beca.estado == 'Rechazado' %}
+                  <span class="badge bg-danger text-white px-2 py-1 rounded-pill" title="Motivo: {{ postulante.solicitud_beca.motivo_rechazo }}">Rechazado</span>
+                {% elif postulante.solicitud_beca.estado == 'Beca Asignada' %}
+                  <span class="badge bg-primary text-white px-2 py-1 rounded-pill">Beca Asignada</span>
+                {% elif postulante.solicitud_beca.estado == 'No seleccionado' %}
+                  <span class="badge bg-secondary text-white px-2 py-1 rounded-pill">No seleccionado</span>
+                {% else %}
+                  <span class="badge bg-warning text-dark px-2 py-1 rounded-pill">{{ postulante.solicitud_beca.estado }}</span>
+                {% endif %}
               {% else %}
-              <span class="badge text-bg-secondary">Sin evaluar</span>
+                <span class="badge bg-secondary text-white px-2 py-1 rounded-pill">Pendiente</span>
               {% endif %}
             </td>
             <td class="text-center">

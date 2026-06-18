@@ -93,3 +93,6 @@ class LogAccion(models.Model):
 
     def __str__(self):
         return f'{self.usuario} — {self.get_accion_display()} ({self.timestamp:%d/%m/%Y %H:%M})'
+
+
+

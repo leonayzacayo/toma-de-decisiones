@@ -5,38 +5,58 @@ from .models import PerfilUsuario
 
 
 class RegistroPostulanteForm(UserCreationForm):
-    """Formulario de registro para nuevos postulantes."""
-    first_name = forms.CharField(
-        max_length=100, label='Nombres',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Juan Carlos'})
-    )
-    last_name = forms.CharField(
-        max_length=100, label='Apellidos',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: García López'})
-    )
-    email = forms.EmailField(
-        label='Correo electrónico',
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'})
-    )
+    first_name = forms.CharField(max_length=150, required=True, label="Nombres", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Juan Carlos'}))
+    last_name = forms.CharField(max_length=150, required=True, label="Apellidos", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Pérez García'}))
+    email = forms.EmailField(required=False, label="Correo Electrónico (opcional)", widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'}))
+    telefono = forms.CharField(max_length=15, required=True, label="Celular", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 71234567'}))
 
-    class Meta:
+    class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('first_name', 'last_name', 'email', 'password1', 'password2')
+        fields = ('username', 'first_name', 'last_name', 'email')
+        labels = {
+            'username': 'Número de Registro Universitario',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 202412345'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['password1'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password1'].label = 'Contraseña'
-        self.fields['password2'].label = 'Confirmar contraseña'
+        for name, field in self.fields.items():
+            field.widget.attrs.setdefault('class', 'form-control')
+            if 'password' in name:
+                field.widget.attrs['placeholder'] = '••••••••'
+                field.widget.attrs['autocomplete'] = 'new-password'
+            else:
+                field.widget.attrs['autocomplete'] = 'off'
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Ya existe un usuario registrado con este correo electrónico.")
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Ya existe un usuario registrado con este número de registro.")
+        return username
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.username = self.cleaned_data['email']  # email como username
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.email = self.cleaned_data.get('email', '')
         if commit:
             user.save()
-            PerfilUsuario.objects.create(user=user, rol=PerfilUsuario.ROL_POSTULANTE)
+            PerfilUsuario.objects.get_or_create(user=user, defaults={'rol': PerfilUsuario.ROL_POSTULANTE})
+            
+            from apps.postulantes.models import Postulante
+            postulante, created = Postulante.objects.get_or_create(user=user)
+            postulante.cedula = user.username
+            postulante.telefono = self.cleaned_data['telefono']
+            postulante.nombre_completo = f"{user.first_name} {user.last_name}"
+            postulante.save()
         return user
 
 

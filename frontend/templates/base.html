@@ -27,7 +27,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark sticky-top" id="main-navbar">
     <div class="container-fluid px-4">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'postulantes:panel' %}">
-        <span class="d-inline-block rounded-circle" style="width: 16px; height: 16px; background: linear-gradient(to right, #0d233a 50%, #b30f0f 50%); border: 1.5px solid #fff;"></span>
+        <img src="{% static 'img/logo_uagrm.png' %}" alt="UAGRM" style="height: 35px; width: auto; object-fit: contain;">
         <span>Becas UAGRM</span>
       </a>
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
@@ -39,7 +39,7 @@
 
           {% if user.perfil.es_postulante %}
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.namespace == 'postulantes' %}active{% endif %}"
+            <a class="nav-link {% if request.resolver_match.url_name == 'panel' %}active{% endif %}"
                href="{% url 'postulantes:panel' %}">
               <i class="bi bi-speedometer2 me-1"></i>Mi Panel
             </a>
@@ -48,9 +48,21 @@
 
           {% if user.perfil.es_evaluador %}
           <li class="nav-item">
-            <a class="nav-link {% if request.resolver_match.namespace == 'evaluaciones' %}active{% endif %}"
+            <a class="nav-link {% if request.resolver_match.namespace == 'evaluaciones' and request.resolver_match.url_name == 'lista' %}active{% endif %}"
                href="{% url 'evaluaciones:lista' %}">
               <i class="bi bi-people me-1"></i>Postulantes
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'panel_evaluador' %}active{% endif %}"
+               href="{% url 'panel_evaluador' %}">
+              <i class="bi bi-cpu me-1"></i>Asignación
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'ranking_postulantes' %}active{% endif %}"
+               href="{% url 'ranking_postulantes' %}">
+              🏆 Ranking
             </a>
           </li>
           <li class="nav-item">
@@ -73,6 +85,11 @@
               <i class="bi bi-shield-lock me-1"></i>Administración
             </a>
             <ul class="dropdown-menu dropdown-menu-dark border-0 shadow">
+              <li>
+                <a class="dropdown-item" href="/admin/usuarios/solicitudverificacion/">
+                  <i class="bi bi-card-checklist me-2"></i>Solicitudes de Verificación
+                </a>
+              </li>
               <li>
                 <a class="dropdown-item" href="{% url 'usuarios:gestion' %}">
                   <i class="bi bi-person-gear me-2"></i>Gestión de usuarios
@@ -134,7 +151,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark sticky-top" id="main-navbar">
     <div class="container px-4">
       <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-        <span class="d-inline-block rounded-circle" style="width: 16px; height: 16px; background: linear-gradient(to right, #0d233a 50%, #b30f0f 50%); border: 1.5px solid #fff;"></span>
+        <img src="{% static 'img/logo_uagrm.png' %}" alt="UAGRM" style="height: 35px; width: auto; object-fit: contain;">
         <span>Becas UAGRM</span>
       </a>
       <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#publicNav">
@@ -144,23 +161,19 @@
       <div class="collapse navbar-collapse" id="publicNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link" href="#inicio">Inicio</a>
+            <a class="nav-link" href="/#inicio">Inicio</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#detalles">Detalles</a>
+            <a class="nav-link" href="/#detalles">Detalles</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#requisitos">Requisitos</a>
+            <a class="nav-link" href="/#requisitos">Requisitos</a>
           </li>
+
           <li class="nav-item">
-            <a class="nav-link" href="#cronograma">Cronograma</a>
+            <a class="nav-link" href="/#faq">FAQ</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#faq">FAQ</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#contacto">Contacto</a>
-          </li>
+
         </ul>
         <div class="d-flex align-items-center gap-2">
           <a href="{% url 'usuarios:login' %}" class="btn btn-outline-light btn-sm">

@@ -43,7 +43,7 @@
               <code class="text-primary fw-semibold">{{ p.nombre }}</code>
             </td>
             <td class="text-center">
-              <span class="badge text-bg-primary fs-6 px-3">{{ p.valor }}</span>
+              <span class="badge text-bg-primary fs-6 px-3">{{ p.valor|floatformat }}</span>
             </td>
             <td class="text-muted small">{{ p.descripcion|default:"—" }}</td>
             <td class="text-center">
@@ -83,19 +83,17 @@
     <div class="card-body">
       <div class="row g-4">
         <div class="col-md-6">
-          <h6 class="fw-bold text-primary">Puntaje Académico (máx. 60)</h6>
-          <pre class="bg-light rounded p-3 small mb-0">P_acad = (promedio / 5) × 40
-        + min((créditos / 30) × 20, 20)</pre>
+          <h6 class="fw-bold text-primary">Puntaje Académico (máx. 30 / 30%)</h6>
+          <pre class="bg-light rounded p-3 small mb-0">P_acad = RangoPPS (hasta 25 pts) + RangoMaterias (hasta 5 pts)</pre>
         </div>
         <div class="col-md-6">
-          <h6 class="fw-bold text-primary">Puntaje Socioeconómico (máx. 40)</h6>
-          <pre class="bg-light rounded p-3 small mb-0">P_socio = (1 - min(ingreso/ingreso_max, 0.95)) × 25
-         + puntos_estrato{1:15, 2:12, 3:8, 4:4}</pre>
+          <h6 class="fw-bold text-primary">Puntaje Socioeconómico (máx. 70 / 70%)</h6>
+          <pre class="bg-light rounded p-3 small mb-0">P_socio = X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 (opciones de base de datos)</pre>
         </div>
         <div class="col-12">
-          <h6 class="fw-bold text-primary">Puntaje Total</h6>
-          <pre class="bg-light rounded p-3 small mb-0">P_total = P_acad × peso_academico + P_socio × peso_socioeconomico
-Estado  = "Aprobado" si P_total ≥ puntaje_corte_aprobado</pre>
+          <h6 class="fw-bold text-primary">Puntaje Total (Z)</h6>
+          <pre class="bg-light rounded p-3 small mb-0">Z = P_acad + P_socio (Máximo 100 puntos)
+Asignación = Modelo de Optimización Lineal para seleccionar los N cupos más altos</pre>
         </div>
       </div>
     </div>

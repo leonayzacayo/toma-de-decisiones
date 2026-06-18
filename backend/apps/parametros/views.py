@@ -58,8 +58,8 @@ class EditarParametroView(AdministradorRequeridoMixin, UpdateView):
 
         # Recalcular todos los puntajes automáticamente
         qs_todos = Postulante.objects.select_related(
-            'datos_academicos', 'datos_socioeconomicos'
-        ).filter(datos_academicos__isnull=False, datos_socioeconomicos__isnull=False)
+            'ficha_socioeconomica'
+        ).filter(ficha_socioeconomica__isnull=False)
         evaluados, errores = EvaluacionService.reevaluar_masivo(qs_todos, evaluado_por=self.request.user)
 
         messages.success(

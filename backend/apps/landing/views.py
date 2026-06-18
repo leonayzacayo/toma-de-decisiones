@@ -13,40 +13,7 @@ def home(request):
     if not convocatoria:
         convocatoria = Convocatoria.objects.order_by('-fecha_inicio').first()
 
-    if request.method == 'POST':
-        nombre = request.POST.get('nombre')
-        correo = request.POST.get('correo')
-        mensaje = request.POST.get('mensaje')
-
-        if nombre and correo and mensaje:
-            # Lógica de envío de correo
-            subject = f'Contacto BecasUni: Mensaje de {nombre}'
-            message_body = f'Nombre: {nombre}\nCorreo: {correo}\n\nMensaje:\n{mensaje}'
-            
-            try:
-                send_mail(
-                    subject,
-                    message_body,
-                    settings.DEFAULT_FROM_EMAIL or 'no-reply@becasuni.edu.co',
-                    [settings.EMAIL_HOST_USER or 'admin@becasuni.edu.co'],
-                    fail_silently=False,
-                )
-                
-                # Registrar en log si el usuario está autenticado
-                user_log = request.user if request.user.is_authenticated else None
-                LogAccion.objects.create(
-                    usuario=user_log,
-                    accion='otro',
-                    detalles={'tipo': 'contacto_landing', 'nombre': nombre, 'email': correo}
-                )
-
-                messages.success(request, '¡Gracias! Tu mensaje ha sido enviado correctamente al administrador.')
-            except Exception as e:
-                messages.error(request, f'Hubo un problema al enviar tu mensaje: {str(e)}')
-            
-            return redirect('landing:home')
-        else:
-            messages.warning(request, 'Por favor, completa todos los campos del formulario.')
+    # No POST request handling needed as contact form was removed
 
     # Fechas por defecto si no hay convocatoria en base de datos
     cronograma = []
