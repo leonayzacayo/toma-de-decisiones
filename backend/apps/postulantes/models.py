@@ -51,7 +51,7 @@ class Postulante(models.Model):
         except Exception:
             ficha_completa = False
 
-        tiene_materias = self.materias.exists()
+        tiene_materias = self.materias.count() >= 2
 
         progreso = 0
         if ficha_completa:
