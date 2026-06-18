@@ -16,6 +16,14 @@ FRONTEND_DIR = BASE_DIR.parent / 'frontend'
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://127.0.0.1:8000', cast=Csv())
+
+# Agregar automáticamente el dominio de Railway si existe
+RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='')
+if RAILWAY_PUBLIC_DOMAIN:
+    # Asegurarse de tener el esquema correcto
+    domain = RAILWAY_PUBLIC_DOMAIN if RAILWAY_PUBLIC_DOMAIN.startswith('http') else f'https://{RAILWAY_PUBLIC_DOMAIN}'
+    CSRF_TRUSTED_ORIGINS.append(domain)
 
 # ─────────────────────────────────────────────
 # Aplicaciones
