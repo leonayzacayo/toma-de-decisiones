@@ -88,3 +88,4 @@ El sistema calcula los puntajes académicos y socioeconómicos utilizando fórmu
 
 ## 📂 Exportación de Base de Datos
 La base de datos actual se almacena localmente en `backend/db.sqlite3`. Puedes abrirla o exportarla usando cualquier administrador de bases de datos como DB Browser for SQLite, DBeaver, o exportar su contenido directamente mediante comandos `dumpdata` de Django si deseas transferirla a PostgreSQL en producción.
+# toma-de-decisiones
