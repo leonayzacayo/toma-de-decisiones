@@ -317,9 +317,25 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx['obs_form'] = ObservacionEvaluacionForm()
-        ctx['evaluacion'] = getattr(self.object, 'evaluacion', None)
-        ctx['solicitud_beca'] = getattr(self.object, 'solicitud_beca', None)
-        ctx['tiene_datos_completos'] = hasattr(self.object, 'ficha_socioeconomica')
+
+        # getattr() no captura RelatedObjectDoesNotExist en relaciones OneToOne de Django.
+        # Se usa try/except para evitar error 500 cuando el postulante aún no tiene evaluación
+        # ni solicitud de beca creada (por ejemplo si nunca envió su postulación).
+        try:
+            ctx['evaluacion'] = self.object.evaluacion
+        except Exception:
+            ctx['evaluacion'] = None
+
+        try:
+            ctx['solicitud_beca'] = self.object.solicitud_beca
+        except Exception:
+            ctx['solicitud_beca'] = None
+
+        try:
+            ctx['tiene_datos_completos'] = bool(self.object.ficha_socioeconomica)
+        except Exception:
+            ctx['tiene_datos_completos'] = False
+
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -433,7 +449,11 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 @login_required
 @user_passes_test(lambda u: u.is_staff or (hasattr(u, 'perfil') and u.perfil.es_evaluador()))
 def rechazar_postulante(request, pk):
-    solicitud = get_object_or_404(SolicitudBeca, postulante__pk=pk)
+    # Usar get_or_create en lugar de get_object_or_404 para que funcione aunque
+    # el postulante aún no tenga SolicitudBeca (no haya enviado su postulación todavía).
+    postulante_obj = get_object_or_404(Postulante, pk=pk)
+    solicitud, _ = SolicitudBeca.objects.get_or_create(postulante=postulante_obj)
+
     if request.method == 'POST':
         motivo = request.POST.get('motivo_rechazo', '').strip()
         if not motivo or len(motivo) < 10:
@@ -447,7 +467,7 @@ def rechazar_postulante(request, pk):
         solicitud.estado = 'Rechazado'
         solicitud.notificado_rechazo = notificar
         solicitud.save()
-        
+
         if notificar:
             try:
                 from django.core.mail import send_mail
@@ -462,7 +482,7 @@ def rechazar_postulante(request, pk):
                     fail_silently=True
                 )
             except Exception as e:
-                print(f"Error al enviar correo en rechazo masivo/individual: {e}")
+                print(f"Error al enviar correo en rechazo individual: {e}")
 
         # Registrar en LogAccion
         LogAccion.objects.create(
@@ -472,17 +492,21 @@ def rechazar_postulante(request, pk):
             objeto_id=solicitud.postulante.pk,
             objeto_tipo='Postulante'
         )
-        
+
         messages.success(request, f'Postulante {solicitud.postulante.user.get_full_name()} rechazado correctamente.')
-        return redirect('panel_evaluador')
-    
+        # Usar namespace completo para evitar NoReverseMatch en producción
+        return redirect('evaluaciones:panel_evaluador')
+
     return redirect('evaluaciones:detalle', pk=pk)
 
 
 @login_required
 @user_passes_test(lambda u: u.is_staff or (hasattr(u, 'perfil') and u.perfil.es_evaluador()))
 def reactivar_postulante(request, pk):
-    solicitud = get_object_or_404(SolicitudBeca, postulante__pk=pk)
+    # Usar get_or_create para que no falle si el postulante no tiene SolicitudBeca todavía.
+    postulante_obj = get_object_or_404(Postulante, pk=pk)
+    solicitud, _ = SolicitudBeca.objects.get_or_create(postulante=postulante_obj)
+
     solicitud.rechazado = False
     solicitud.estado = 'Pendiente'
     solicitud.motivo_rechazo = None
