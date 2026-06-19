@@ -13,6 +13,29 @@ def calcular_puntaje_academico(postulante):
         promedio = 0.0
         aprobadas = 0
 
+    # Si no hay materias ingresadas, el puntaje es 0
+    if not materias.exists():
+        puntaje_ppa = 0.0
+        puntaje_materias = 0.0
+        total = 0.0
+        datos_acad, _ = DatosAcademicos.objects.get_or_create(
+            postulante=postulante,
+            defaults={'ppa': 0.0, 'materias_aprobadas': 0}
+        )
+        datos_acad.ppa = 0.0
+        datos_acad.materias_aprobadas = 0
+        datos_acad.puntaje_ppa = 0.0
+        datos_acad.puntaje_materias = 0.0
+        datos_acad.puntaje_academico_total = 0.0
+        datos_acad.save()
+        return {
+            'promedio': 0.0,
+            'aprobadas': 0,
+            'puntaje_ppa': 0.0,
+            'puntaje_materias': 0.0,
+            'total': 0.0,
+        }
+
     # 1. Puntaje por PPA (máx 25)
     rango_pps = RangoPPS.objects.filter(desde__lte=promedio, hasta__gte=promedio).first()
     puntaje_ppa = rango_pps.puntaje if rango_pps else 0.0
