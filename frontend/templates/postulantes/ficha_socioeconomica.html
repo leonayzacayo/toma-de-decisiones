@@ -165,13 +165,13 @@
           <div class="col-md-6">
             <div class="ficha-field-group">
               <label class="ficha-label">Nombre Completo</label>
-              <input type="text" class="form-control ficha-input-readonly" value="{{ request.user.get_full_name|default:postulante.nombre_completo }}" readonly>
+              <input type="text" class="form-control ficha-input-readonly" value="{{ postulante.user.get_full_name|default:postulante.nombre_completo }}" readonly>
             </div>
           </div>
           <div class="col-md-3">
             <div class="ficha-field-group">
               <label class="ficha-label">Registro Universitario</label>
-              <input type="text" class="form-control ficha-input-readonly" value="{{ request.user.username }}" readonly>
+              <input type="text" class="form-control ficha-input-readonly" value="{{ postulante.user.username }}" readonly>
             </div>
           </div>
           <div class="col-md-3">
@@ -190,7 +190,7 @@
           <div class="col-md-6">
             <div class="ficha-field-group">
               <label class="ficha-label">Carrera <span class="asterisk-required">*</span></label>
-              <select class="form-select ficha-input-edit" name="carrera" required>
+              <select class="form-select ficha-input-edit" name="carrera" required {% if not puede_editar %}disabled{% endif %}>
                 <option value="" disabled {% if not postulante.carrera %}selected{% endif %}>Seleccione su carrera...</option>
                 <option value="Ing. en Sistemas" {% if postulante.carrera == "Ing. en Sistemas" %}selected{% endif %}>Ing. en Sistemas</option>
                 <option value="Ing. en Agropecuaria" {% if postulante.carrera == "Ing. en Agropecuaria" %}selected{% endif %}>Ing. en Agropecuaria</option>
@@ -280,9 +280,11 @@
                     <td>{{ f_form.ocupacion }}</td>
                     <td>{{ f_form.observacion }}</td>
                     <td>
+                      {% if puede_editar %}
                       <button type="button" class="btn btn-sm btn-danger eliminar-familiar-btn">
                         <i class="bi bi-trash"></i>
                       </button>
+                      {% endif %}
                       <div style="display:none;">
                         {{ f_form.DELETE }}
                       </div>
@@ -291,11 +293,13 @@
                 {% endfor %}
               </tbody>
             </table>
+            {% if puede_editar %}
             <div class="text-end">
               <button type="button" class="btn btn-sm btn-outline-dark" id="add-familiar-btn" style="border-radius: 0;">
                 <i class="bi bi-plus-lg"></i> AGREGAR MIEMBRO
               </button>
             </div>
+            {% endif %}
           </div>
         </div>
 

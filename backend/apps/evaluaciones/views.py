@@ -495,3 +495,38 @@ def reactivar_postulante(request, pk):
 
     messages.success(request, f'Postulante {solicitud.postulante.user.get_full_name()} reactivado correctamente.')
     return redirect('evaluaciones:detalle', pk=pk)
+
+
+class VerFichaSocioeconomicaView(EvaluadorRequeridoMixin, TemplateView):
+    template_name = 'postulantes/ficha_socioeconomica.html'
+
+    def get(self, request, pk, *args, **kwargs):
+        from apps.postulantes.forms import FichaSocioeconomicaForm, DatosAcademicosForm, MiembroFamiliarFormSet
+        postulante = get_object_or_404(Postulante, pk=pk)
+        ficha = getattr(postulante, 'ficha_socioeconomica', None)
+        academicos = getattr(postulante, 'datos_academicos', None)
+
+        form_ficha = FichaSocioeconomicaForm(instance=ficha)
+        form_acad = DatosAcademicosForm(instance=academicos)
+        formset = MiembroFamiliarFormSet(instance=ficha)
+
+        # Disable all fields for read-only view
+        for field in form_ficha.fields.values():
+            field.widget.attrs['disabled'] = True
+            field.required = False
+        for field in form_acad.fields.values():
+            field.widget.attrs['disabled'] = True
+            field.required = False
+        for form in formset:
+            for field in form.fields.values():
+                field.widget.attrs['disabled'] = True
+                field.required = False
+
+        return self.render_to_response({
+            'form_ficha': form_ficha,
+            'form_acad': form_acad,
+            'formset': formset,
+            'postulante': postulante,
+            'puede_editar': False,  # Evaluator views it as read-only
+        })
+
