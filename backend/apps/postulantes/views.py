@@ -228,7 +228,7 @@ MateriaFormSet = inlineformset_factory(
         'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Cálculo I'}),
         'sigla': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. MAT101'}),
         'nota': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.1, 'placeholder': '0-100'}),
-        'semestre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 2025-1'}),
+        'semestre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 2025-2'}),
     }
 )
 

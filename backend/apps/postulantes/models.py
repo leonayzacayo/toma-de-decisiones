@@ -105,7 +105,7 @@ class MateriaSemestre(models.Model):
     nombre = models.CharField(max_length=100)
     sigla = models.CharField(max_length=10)
     nota = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(100.0)])
-    semestre = models.CharField(max_length=20, default='2025-1')
+    semestre = models.CharField(max_length=20, default='2025-2')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
