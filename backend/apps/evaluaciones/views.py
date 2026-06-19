@@ -370,17 +370,20 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
             )
 
             # Enviar correo
-            asunto = "Tu postulación a la Beca Albergue ha sido rechazada"
-            cuerpo = f"Hola {postulante.user.first_name or postulante.nombre_completo},\n\nTu postulación ha sido rechazada por el siguiente motivo:\n\n{motivo}\n\nPuedes ver más detalles en tu panel de usuario en:\n{request.build_absolute_uri('/dashboard/mi-postulacion/')}"
-            send_mail(
-                asunto,
-                cuerpo,
-                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                [postulante.user.email],
-                fail_silently=True
-            )
+            try:
+                asunto = "Tu postulación a la Beca Albergue ha sido rechazada"
+                cuerpo = f"Hola {postulante.user.first_name or postulante.nombre_completo},\n\nTu postulación ha sido rechazada por el siguiente motivo:\n\n{motivo}\n\nPuedes ver más detalles en tu panel de usuario en:\n{request.build_absolute_uri('/dashboard/mi-postulacion/')}"
+                send_mail(
+                    asunto,
+                    cuerpo,
+                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                    [postulante.user.email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error al enviar correo: {e}")
 
-            messages.success(request, f'Postulación de {postulante.nombre_completo} rechazada y notificación enviada.')
+            messages.success(request, f'Postulación de {postulante.nombre_completo} rechazada (notificación de correo omitida o con error).')
             return redirect('evaluaciones:detalle', pk=postulante.pk)
 
         return redirect('evaluaciones:detalle', pk=postulante.pk)
@@ -446,17 +449,20 @@ def rechazar_postulante(request, pk):
         solicitud.save()
         
         if notificar:
-            from django.core.mail import send_mail
-            from django.conf import settings
-            asunto = "Actualización de tu postulación a la Beca Albergue UAGRM"
-            cuerpo = f"Tu postulación ha sido rechazada por el siguiente motivo: {motivo}.\n\nPuedes contactar al comité de becas para más información."
-            send_mail(
-                asunto,
-                cuerpo,
-                getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                [solicitud.postulante.user.email],
-                fail_silently=True
-            )
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                asunto = "Actualización de tu postulación a la Beca Albergue UAGRM"
+                cuerpo = f"Tu postulación ha sido rechazada por el siguiente motivo: {motivo}.\n\nPuedes contactar al comité de becas para más información."
+                send_mail(
+                    asunto,
+                    cuerpo,
+                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                    [solicitud.postulante.user.email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error al enviar correo en rechazo masivo/individual: {e}")
 
         # Registrar en LogAccion
         LogAccion.objects.create(
