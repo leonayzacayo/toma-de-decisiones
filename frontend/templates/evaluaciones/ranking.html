@@ -105,9 +105,9 @@
                   </td>
                   <td>{{ sol.postulante.cedula }}</td>
                   <td>
-                    {% if sol.postulante.solicitud_verificacion %}
-                      <div>{{ sol.postulante.solicitud_verificacion.facultad }}</div>
-                      <small class="text-muted">{{ sol.postulante.solicitud_verificacion.carrera }}</small>
+                    {% if sol.postulante.facultad or sol.postulante.carrera %}
+                      <div>{{ sol.postulante.facultad|default:"—" }}</div>
+                      <small class="text-muted">{{ sol.postulante.carrera|default:"—" }}</small>
                     {% else %}
                       <span class="text-muted small">No especificada</span>
                     {% endif %}
