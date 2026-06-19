@@ -557,6 +557,7 @@ class VerFichaSocioeconomicaView(EvaluadorRequeridoMixin, TemplateView):
             'form_acad': form_acad,
             'formset': formset,
             'postulante': postulante,
-            'puede_editar': False,  # Evaluator views it as read-only
+            'puede_editar': False,    # El evaluador solo puede ver, no editar
+            'es_evaluador': True,     # Indica que es vista del evaluador para mostrar botones correctos
         })
 
