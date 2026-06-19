@@ -43,6 +43,11 @@
           {% if form.telefono.errors %}<div class="text-danger small mt-1">{{ form.telefono.errors|join:", " }}</div>{% endif %}
         </div>
         <div class="col-md-12">
+          <label class="form-label" for="{{ form.cedula.id_for_label }}">Cédula de Identidad (CI) *</label>
+          {{ form.cedula }}
+          {% if form.cedula.errors %}<div class="text-danger small mt-1">{{ form.cedula.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="col-md-12">
           <label class="form-label" for="{{ form.email.id_for_label }}">Correo electrónico (opcional)</label>
           {{ form.email }}
           {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>{% endif %}

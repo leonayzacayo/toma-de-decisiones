@@ -162,13 +162,19 @@
         <!-- 1° DATOS DEL POSTULANTE -->
         <div class="ficha-seccion-titulo">1° DATOS PERSONALES DEL POSTULANTE</div>
         <div class="row g-3">
-          <div class="col-md-8">
+          <div class="col-md-6">
             <div class="ficha-field-group">
               <label class="ficha-label">Nombre Completo</label>
               <input type="text" class="form-control ficha-input-readonly" value="{{ request.user.get_full_name|default:postulante.nombre_completo }}" readonly>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
+            <div class="ficha-field-group">
+              <label class="ficha-label">Registro Universitario</label>
+              <input type="text" class="form-control ficha-input-readonly" value="{{ request.user.username }}" readonly>
+            </div>
+          </div>
+          <div class="col-md-3">
             <div class="ficha-field-group">
               <label class="ficha-label">Cédula de Identidad</label>
               <input type="text" class="form-control ficha-input-readonly" value="{{ postulante.cedula }}" readonly>

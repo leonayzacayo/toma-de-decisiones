@@ -9,6 +9,7 @@ class RegistroPostulanteForm(UserCreationForm):
     last_name = forms.CharField(max_length=150, required=True, label="Apellidos", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Pérez García'}))
     email = forms.EmailField(required=False, label="Correo Electrónico (opcional)", widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'}))
     telefono = forms.CharField(max_length=15, required=True, label="Celular", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 71234567'}))
+    cedula = forms.CharField(max_length=20, required=True, label="Cédula de Identidad (CI)", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 1234567'}))
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -42,6 +43,13 @@ class RegistroPostulanteForm(UserCreationForm):
             raise forms.ValidationError("Ya existe un usuario registrado con este número de registro.")
         return username
 
+    def clean_cedula(self):
+        cedula = self.cleaned_data.get('cedula')
+        from apps.postulantes.models import Postulante
+        if Postulante.objects.filter(cedula=cedula).exists():
+            raise forms.ValidationError("Ya existe un postulante registrado con este número de cédula de identidad.")
+        return cedula
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data['first_name']
@@ -53,9 +61,10 @@ class RegistroPostulanteForm(UserCreationForm):
             
             from apps.postulantes.models import Postulante
             postulante, created = Postulante.objects.get_or_create(user=user)
-            postulante.cedula = user.username
+            postulante.cedula = self.cleaned_data['cedula']
             postulante.telefono = self.cleaned_data['telefono']
             postulante.nombre_completo = f"{user.first_name} {user.last_name}"
+            postulante.facultad = 'Facultad Integral de los Valles Cruceños'
             postulante.save()
         return user
 
