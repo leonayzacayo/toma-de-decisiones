@@ -179,6 +179,14 @@ class VaciarPostulantesView(AdministradorRequeridoMixin, View):
         count = postulantes_users.count()
         postulantes_users.delete()
         
+        # Eliminar cualquier registro de Postulante que pertenezca a staff, superusuarios o evaluadores
+        Postulante.objects.filter(
+            Q(user__is_staff=True) |
+            Q(user__is_superuser=True) |
+            Q(user__perfil__rol='evaluador') |
+            Q(user__perfil__rol='administrador')
+        ).delete()
+        
         # Limpiar logs huérfanos o antiguos
         LogAccion.objects.filter(usuario__isnull=True).delete()
         

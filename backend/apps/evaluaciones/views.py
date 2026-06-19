@@ -263,7 +263,12 @@ class ListaPostulantesView(EvaluadorRequeridoMixin, ListView):
 
     def get_queryset(self):
         qs = Postulante.objects.select_related(
-            'ficha_socioeconomica', 'evaluacion', 'convocatoria', 'solicitud_beca'
+            'ficha_socioeconomica', 'evaluacion', 'convocatoria', 'solicitud_beca', 'user__perfil'
+        ).exclude(
+            Q(user__is_staff=True) |
+            Q(user__is_superuser=True) |
+            Q(user__perfil__rol='evaluador') |
+            Q(user__perfil__rol='administrador')
         ).order_by('-fecha_registro')
 
         estado = self.request.GET.get('estado')
