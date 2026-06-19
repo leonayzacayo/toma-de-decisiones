@@ -13,7 +13,7 @@ FRONTEND_DIR = BASE_DIR.parent / 'frontend'
 # ─────────────────────────────────────────────
 # Seguridad
 # ─────────────────────────────────────────────
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-build-only-key-do-not-use-in-production')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://127.0.0.1:8000', cast=Csv())
