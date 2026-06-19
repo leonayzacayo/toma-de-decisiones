@@ -28,7 +28,8 @@ class Command(BaseCommand):
             ('Ambos padres', 5),
             ('Pareja', 6),
             ('Otro familiar', 8),
-            ('Solo padre o madre', 9),
+            ('Solo padre', 9),
+            ('Solo madre', 9),
             ('Independiente', 10),
         ]
         for opt, pts in x1_opts:
