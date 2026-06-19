@@ -218,26 +218,21 @@ class MiPostulacionView(PostulanteRequeridoMixin, TemplateView):
         return ctx
 
 
-MateriaFormSet = inlineformset_factory(
-    Postulante,
-    MateriaSemestre,
-    fields=('nombre', 'sigla', 'nota', 'semestre'),
-    extra=1,
-    can_delete=True,
-    widgets={
-        'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Cálculo I'}),
-        'sigla': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. MAT101'}),
-        'nota': forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'max': 100, 'step': 0.1, 'placeholder': '0-100'}),
-        'semestre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 2025-2'}),
-    }
-)
-
-
 class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
     template_name = 'postulantes/registro_materias.html'
 
     def get_postulante(self):
         return get_object_or_404(Postulante, user=self.request.user)
+
+    def _get_catalogo(self, postulante):
+        """Obtiene las materias del catálogo para la carrera y semestre activo del postulante."""
+        from apps.parametros.models import MateriaCatalogo, SemestreRegistro
+        semestre = SemestreRegistro.get_semestre_activo()
+        materias = MateriaCatalogo.objects.filter(
+            carrera__nombre__iexact=postulante.carrera,
+            semestre_academico=semestre,
+        ).order_by('orden', 'sigla')
+        return materias, semestre
 
     def get(self, request, *args, **kwargs):
         postulante = self.get_postulante()
@@ -246,12 +241,27 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
             defaults={'ppa': 0.0, 'materias_aprobadas': 0}
         )
         form_acad = RegistroAcademicoForm(instance=datos_acad)
-        formset = MateriaFormSet(instance=postulante)
+        materias_catalogo, semestre = self._get_catalogo(postulante)
+
+        # Cargar notas previamente guardadas (clave: sigla)
+        notas_guardadas = {
+            m.sigla: m.nota
+            for m in MateriaSemestre.objects.filter(
+                postulante=postulante, semestre=semestre
+            )
+        }
+        materias_con_nota = [
+            {'catalogo': mc, 'nota': notas_guardadas.get(mc.sigla, '')}
+            for mc in materias_catalogo
+        ]
+
         return self.render_to_response({
             'form_acad': form_acad,
-            'formset': formset,
+            'materias_con_nota': materias_con_nota,
+            'semestre_activo': semestre,
             'postulante': postulante,
             'datos_acad': datos_acad,
+            'sin_catalogo': not materias_catalogo.exists(),
         })
 
     def post(self, request, *args, **kwargs):
@@ -261,27 +271,98 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
             defaults={'ppa': 0.0, 'materias_aprobadas': 0}
         )
         form_acad = RegistroAcademicoForm(request.POST, request.FILES, instance=datos_acad)
-        formset = MateriaFormSet(request.POST, instance=postulante)
-        
-        if form_acad.is_valid() and formset.is_valid():
+        materias_catalogo, semestre = self._get_catalogo(postulante)
+
+        errores = []
+
+        if form_acad.is_valid():
             with transaction.atomic():
                 form_acad.save()
-                formset.save()
+
+                # Guardar/actualizar notas por cada materia del catálogo
+                notas_ingresadas = 0
+                for mc in materias_catalogo:
+                    nota_str = request.POST.get(f'nota_{mc.pk}', '').strip()
+                    if nota_str:
+                        try:
+                            nota = float(nota_str)
+                            if nota < 0 or nota > 100:
+                                errores.append(f'{mc.sigla}: la nota debe estar entre 0 y 100.')
+                                continue
+                            MateriaSemestre.objects.update_or_create(
+                                postulante=postulante,
+                                sigla=mc.sigla,
+                                semestre=semestre,
+                                defaults={'nombre': mc.nombre, 'nota': nota},
+                            )
+                            notas_ingresadas += 1
+                        except ValueError:
+                            errores.append(f'{mc.sigla}: valor de nota inválido.')
+                    else:
+                        # Si dejó vacío, eliminar el registro anterior si existía
+                        MateriaSemestre.objects.filter(
+                            postulante=postulante,
+                            sigla=mc.sigla,
+                            semestre=semestre,
+                        ).delete()
+
+                if notas_ingresadas < 2:
+                    errores.append('Debes ingresar la nota de al menos 2 materias para completar el registro.')
+
+                if errores:
+                    for err in errores:
+                        messages.error(request, err)
+                    # Reload para mostrar notas ingresadas
+                    notas_guardadas = {
+                        m.sigla: m.nota
+                        for m in MateriaSemestre.objects.filter(
+                            postulante=postulante, semestre=semestre
+                        )
+                    }
+                    materias_con_nota = [
+                        {'catalogo': mc, 'nota': notas_guardadas.get(mc.sigla, '')}
+                        for mc in materias_catalogo
+                    ]
+                    return self.render_to_response({
+                        'form_acad': form_acad,
+                        'materias_con_nota': materias_con_nota,
+                        'semestre_activo': semestre,
+                        'postulante': postulante,
+                        'datos_acad': datos_acad,
+                        'sin_catalogo': not materias_catalogo.exists(),
+                    })
+
+                # Recalcular puntaje académico
                 from .utils import calcular_puntaje_academico
                 res = calcular_puntaje_academico(postulante)
+
             messages.success(
                 request,
-                f"¡Registro académico guardado con éxito! "
-                f"Tu PPA es {res['promedio']:.2f} y has aprobado {res['aprobadas']} materias. "
-                f"Puntaje por PPA: {res['puntaje_ppa']:.1f} pts, por materias: {res['puntaje_materias']:.1f} pts, total académico: {res['total']:.1f} pts."
+                f'✅ Registro académico guardado. '
+                f'PPA: {res["promedio"]:.2f} | '
+                f'Aprobadas: {res["aprobadas"]} materias | '
+                f'Puntaje académico: {res["total"]:.1f} pts.'
             )
             return redirect('postulantes:panel')
+
+        # form_acad inválido
+        notas_guardadas = {
+            m.sigla: m.nota
+            for m in MateriaSemestre.objects.filter(postulante=postulante, semestre=semestre)
+        }
+        materias_con_nota = [
+            {'catalogo': mc, 'nota': notas_guardadas.get(mc.sigla, '')}
+            for mc in materias_catalogo
+        ]
         return self.render_to_response({
             'form_acad': form_acad,
-            'formset': formset,
+            'materias_con_nota': materias_con_nota,
+            'semestre_activo': semestre,
             'postulante': postulante,
             'datos_acad': datos_acad,
+            'sin_catalogo': not materias_catalogo.exists(),
         })
+
 
 
 from django.views import View

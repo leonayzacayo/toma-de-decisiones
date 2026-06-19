@@ -12,13 +12,25 @@ def validate_file_size(value):
 
 
 class Postulante(models.Model):
+    CARRERA_CHOICES = [
+        ('Ingeniería en Sistemas', 'Ingeniería en Sistemas'),
+        ('Ingeniería Agropecuaria', 'Ingeniería Agropecuaria'),
+        ('Contaduría Pública', 'Contaduría Pública'),
+        ('Industrialización de Alimentos', 'Industrialización de Alimentos'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='postulante')
     cedula = models.CharField(max_length=20, unique=True)
     telefono = models.CharField(max_length=15, blank=True, default='')
     ficha_completada = models.BooleanField(default=False)
-    carrera = models.CharField(max_length=100, blank=True, default='')
+    carrera = models.CharField(max_length=100, blank=True, default='', choices=CARRERA_CHOICES)
     facultad = models.CharField(max_length=100, blank=True, default='Facultad Integral de los Valles Cruceños')
-    
+    semestre_actual = models.CharField(
+        max_length=20, blank=True, default='',
+        verbose_name='Semestre Actual',
+        help_text='Semestre que cursas actualmente (ej: 2026-1)',
+    )
+
     # Mantener para compatibilidad
     nombre_completo = models.CharField(max_length=200, blank=True)
     direccion = models.TextField(blank=True)
@@ -26,6 +38,7 @@ class Postulante(models.Model):
     convocatoria = models.ForeignKey(Convocatoria, on_delete=models.SET_NULL, null=True, blank=True, related_name='postulantes')
     fecha_registro = models.DateTimeField(auto_now_add=True)
     datos_completos = models.BooleanField(default=False)
+
 
     class Meta:
         verbose_name = 'Postulante'

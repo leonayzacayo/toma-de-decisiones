@@ -122,3 +122,79 @@ class ReglaDesempate(models.Model):
     def __str__(self):
         return f'{self.orden_ejecucion}. {self.nombre} ({self.campo_modelo} {self.direccion})'
 
+
+# ──────────────────────────────────────────────────────────────
+# CATÁLOGO DE MATERIAS POR CARRERA
+# ──────────────────────────────────────────────────────────────
+
+class Carrera(models.Model):
+    """Carreras universitarias que participan en el sistema de becas."""
+    nombre = models.CharField(max_length=100, unique=True, verbose_name='Nombre de la Carrera')
+    codigo = models.CharField(max_length=20, blank=True, verbose_name='Código')
+
+    class Meta:
+        verbose_name = 'Carrera'
+        verbose_name_plural = 'Carreras'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+
+class MateriaCatalogo(models.Model):
+    """
+    Catálogo de materias por carrera y semestre académico.
+    El administrador define aquí todas las materias que el postulante cursó
+    en el semestre anterior; el postulante solo ingresa la nota final.
+    """
+    carrera = models.ForeignKey(
+        Carrera,
+        on_delete=models.CASCADE,
+        related_name='materias_catalogo',
+        verbose_name='Carrera',
+    )
+    semestre_academico = models.CharField(
+        max_length=20,
+        verbose_name='Semestre Académico',
+        help_text='Periodo académico al que pertenece esta materia. Ej: 2025-2, 2026-1',
+    )
+    sigla = models.CharField(max_length=15, verbose_name='Sigla')
+    nombre = models.CharField(max_length=150, verbose_name='Nombre de la Materia')
+    orden = models.IntegerField(default=0, verbose_name='Orden de visualización')
+
+    class Meta:
+        verbose_name = 'Materia del Catálogo'
+        verbose_name_plural = 'Catálogo de Materias'
+        ordering = ['orden', 'sigla']
+        unique_together = [['carrera', 'semestre_academico', 'sigla']]
+
+    def __str__(self):
+        return f'[{self.carrera}] {self.semestre_academico} — {self.sigla}: {self.nombre}'
+
+
+class SemestreRegistro(models.Model):
+    """
+    Singleton que define el semestre académico activo para el registro de notas.
+    El administrador mantiene solo UN registro activo.
+    Si no hay ninguno activo, el sistema usará '2025-2' como fallback.
+    """
+    semestre = models.CharField(
+        max_length=20,
+        verbose_name='Semestre Activo',
+        help_text='Periodo académico cuyos datos están registrando los postulantes. Ej: 2025-2',
+    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    descripcion = models.CharField(max_length=200, blank=True, verbose_name='Descripción')
+
+    class Meta:
+        verbose_name = 'Semestre de Registro'
+        verbose_name_plural = 'Semestre de Registro'
+
+    def __str__(self):
+        return f'{self.semestre} {"(Activo)" if self.activo else "(Inactivo)"}'
+
+    @classmethod
+    def get_semestre_activo(cls):
+        """Retorna el semestre activo o '2025-2' como fallback."""
+        obj = cls.objects.filter(activo=True).first()
+        return obj.semestre if obj else '2025-2'
