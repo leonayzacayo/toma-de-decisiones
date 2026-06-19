@@ -157,9 +157,22 @@
         </p>
         <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3">
           {% if user.is_authenticated %}
-            <a href="{% url 'postulantes:panel' %}" class="btn btn-gold btn-lg px-4 py-3 fw-bold">
-              <i class="bi bi-speedometer2 me-2"></i>Ir a mi Panel de Postulante
-            </a>
+            {% if user.is_staff or user.is_superuser %}
+              {# Admin del sistema #}
+              <a href="{% url 'evaluaciones:lista' %}" class="btn btn-gold btn-lg px-4 py-3 fw-bold">
+                <i class="bi bi-shield-check me-2"></i>Ir al Panel de Administrador
+              </a>
+            {% elif user.perfil.es_evaluador %}
+              {# Evaluador #}
+              <a href="{% url 'evaluaciones:lista' %}" class="btn btn-gold btn-lg px-4 py-3 fw-bold">
+                <i class="bi bi-clipboard-check me-2"></i>Ir al Panel de Evaluador
+              </a>
+            {% else %}
+              {# Postulante #}
+              <a href="{% url 'postulantes:panel' %}" class="btn btn-gold btn-lg px-4 py-3 fw-bold">
+                <i class="bi bi-speedometer2 me-2"></i>Ir a mi Panel de Postulante
+              </a>
+            {% endif %}
           {% else %}
             <a href="{% url 'usuarios:registro' %}" class="btn btn-gold btn-lg px-4 py-3 fw-bold shadow-lg">
               <i class="bi bi-rocket-takeoff me-2"></i>Iniciar Postulación
