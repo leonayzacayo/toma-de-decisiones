@@ -7,7 +7,7 @@ from .models import PerfilUsuario
 class RegistroPostulanteForm(UserCreationForm):
     first_name = forms.CharField(max_length=150, required=True, label="Nombres", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Juan Carlos'}))
     last_name = forms.CharField(max_length=150, required=True, label="Apellidos", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Pérez García'}))
-    email = forms.EmailField(required=False, label="Correo Electrónico (opcional)", widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'}))
+    email = forms.EmailField(required=True, label="Correo Electrónico", widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@ejemplo.com'}))
     telefono = forms.CharField(max_length=15, required=True, label="Celular", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 71234567'}))
     cedula = forms.CharField(max_length=20, required=True, label="Cédula de Identidad (CI)", widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 1234567'}))
 
