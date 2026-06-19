@@ -232,6 +232,13 @@
             <div class="ficha-field-group">
               <label class="ficha-label">Respaldo Ocupación (Opcional)</label>
               {{ form_ficha.doc_ocupacion }}
+              {% if form_ficha.instance.doc_ocupacion %}
+                <div class="mt-2">
+                  <a href="{{ form_ficha.instance.doc_ocupacion.url }}" target="_blank" class="btn btn-sm btn-outline-info py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                  </a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -339,6 +346,13 @@
             <div class="ficha-field-group">
               <label class="ficha-label">Respaldo Procedencia (Opcional)</label>
               {{ form_ficha.doc_ingresos }}
+              {% if form_ficha.instance.doc_ingresos %}
+                <div class="mt-2">
+                  <a href="{{ form_ficha.instance.doc_ingresos.url }}" target="_blank" class="btn btn-sm btn-outline-info py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                  </a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -391,6 +405,13 @@
             <div class="ficha-field-group">
               <label class="ficha-label">Respaldo Tenencia / Vivienda (Opcional)</label>
               {{ form_ficha.doc_vivienda }}
+              {% if form_ficha.instance.doc_vivienda %}
+                <div class="mt-2">
+                  <a href="{{ form_ficha.instance.doc_vivienda.url }}" target="_blank" class="btn btn-sm btn-outline-info py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                  </a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -468,7 +489,11 @@
               <label class="ficha-label">{{ form_ficha.archivo_boleta_inscripcion.label }} <span class="asterisk-required">*</span></label>
               {{ form_ficha.archivo_boleta_inscripcion }}
               {% if form_ficha.instance.archivo_boleta_inscripcion %}
-                <div class="mt-2 small text-success font-monospace">[✓ Archivo cargado]</div>
+                <div class="mt-2">
+                  <a href="{{ form_ficha.instance.archivo_boleta_inscripcion.url }}" target="_blank" class="btn btn-sm btn-outline-success py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                  </a>
+                </div>
               {% endif %}
             </div>
           </div>
@@ -477,7 +502,11 @@
               <label class="ficha-label">{{ form_ficha.archivo_historico_academico.label }} <span class="asterisk-required">*</span></label>
               {{ form_ficha.archivo_historico_academico }}
               {% if form_ficha.instance.archivo_historico_academico %}
-                <div class="mt-2 small text-success font-monospace">[✓ Archivo cargado]</div>
+                <div class="mt-2">
+                  <a href="{{ form_ficha.instance.archivo_historico_academico.url }}" target="_blank" class="btn btn-sm btn-outline-success py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                  </a>
+                </div>
               {% endif %}
             </div>
           </div>
@@ -486,17 +515,19 @@
               <label class="ficha-label">{{ form_ficha.archivo_carnet_identidad.label }} <span class="asterisk-required">*</span></label>
               {{ form_ficha.archivo_carnet_identidad }}
               {% if form_ficha.instance.archivo_carnet_identidad %}
-                <div class="mt-2 small text-success font-monospace font-monospace">[✓ Archivo cargado]</div>
+                <div class="mt-2">
+                  <a href="{{ form_ficha.instance.archivo_carnet_identidad.url }}" target="_blank" class="btn btn-sm btn-outline-success py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                  </a>
+                </div>
               {% endif %}
             </div>
           </div>
         </div>
 
-        <!-- DECLARACIÓN VOLUNTARIA -->
-        <div class="ficha-seccion-titulo">DECLARACIÓN JURADA VOLUNTARIA</div>
         <div class="p-3 border border-dark bg-light mb-4">
           <p class="small mb-0 text-justify" style="line-height: 1.5; font-size: 0.8rem;">
-            YO, <strong>{{ request.user.get_full_name|upper|default:postulante.nombre_completo|upper }}</strong>, IDENTIFICADO CON C.I. <strong>{{ postulante.cedula }}</strong>, DECLARO BAJO JURAMENTO QUE TODOS LOS DATOS E INFORMACIÓN SUMINISTRADA EN LA PRESENTE FICHA SON DE CARÁCTER FIDEDIGNO Y CORRESPONDEN CON LA VERDAD. AUTORIZO A LA DIRECCIÓN DE BIENESTAR SOCIAL DE LA U.A.G.R.M. A VERIFICAR LA VERACIDAD DE LOS MISMOS POR LOS MEDIOS QUE CONSIDERE PERTINENTES.
+            YO, <strong>{{ postulante.user.get_full_name|upper|default:postulante.nombre_completo|upper }}</strong>, IDENTIFICADO CON C.I. <strong>{{ postulante.cedula }}</strong>, DECLARO BAJO JURAMENTO QUE TODOS LOS DATOS E INFORMACIÓN SUMINISTRADA EN LA PRESENTE FICHA SON DE CARÁCTER FIDEDIGNO Y CORRESPONDEN CON LA VERDAD. AUTORIZO A LA DIRECCIÓN DE BIENESTAR SOCIAL DE LA U.A.G.R.M. A VERIFICAR LA VERACIDAD DE LOS MISMOS POR LOS MEDIOS QUE CONSIDERE PERTINENTES.
           </p>
         </div>
 
