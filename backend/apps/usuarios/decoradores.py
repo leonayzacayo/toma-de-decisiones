@@ -12,20 +12,26 @@ from django.shortcuts import redirect
 # ──────────────────────────────────────────────
 
 def es_evaluador(user):
-    """True si el usuario tiene rol evaluador o administrador."""
+    """True si el usuario tiene rol evaluador o administrador, o es staff/superuser."""
     return (
         user.is_authenticated
-        and hasattr(user, 'perfil')
-        and user.perfil.es_evaluador()
+        and (
+            user.is_staff 
+            or user.is_superuser 
+            or (hasattr(user, 'perfil') and user.perfil.es_evaluador())
+        )
     )
 
 
 def es_administrador(user):
-    """True si el usuario tiene rol administrador."""
+    """True si el usuario tiene rol administrador, o es staff/superuser."""
     return (
         user.is_authenticated
-        and hasattr(user, 'perfil')
-        and user.perfil.es_administrador()
+        and (
+            user.is_staff 
+            or user.is_superuser 
+            or (hasattr(user, 'perfil') and user.perfil.es_administrador())
+        )
     )
 
 
