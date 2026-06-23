@@ -83,6 +83,8 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
         # 4. Asignar becas
         now = timezone.now()
         seleccionados_ids = []
+        from django.core.mail import send_mail
+        from django.conf import settings
         
         # Tomar los primeros N
         for idx, sol in enumerate(solicitudes):
@@ -90,9 +92,49 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
                 sol.estado = 'Beca Asignada'
                 sol.fecha_asignacion = now
                 seleccionados_ids.append(sol.pk)
+                
+                # Enviar correo de asignación
+                try:
+                    asunto = "¡Felicidades! Beca Albergue Asignada"
+                    cuerpo = (
+                        f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
+                        f"Nos complace informarte que has sido seleccionado para la asignación de la Beca Albergue UAGRM.\n\n"
+                        f"Tu puntaje final obtenido es de {sol.puntaje_total:.2f} puntos.\n\n"
+                        f"Puedes verificar los detalles en tu panel de usuario:\n"
+                        f"{request.build_absolute_uri('/dashboard/')}"
+                    )
+                    send_mail(
+                        asunto,
+                        cuerpo,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                        [sol.postulante.user.email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Error al enviar correo de asignación: {e}")
             else:
                 sol.estado = 'No seleccionado'
                 sol.fecha_asignacion = None
+                
+                # Enviar correo de no seleccionado
+                try:
+                    asunto = "Resultado del proceso de selección - Beca Albergue"
+                    cuerpo = (
+                        f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
+                        f"Te informamos que ha finalizado el proceso de asignación de la Beca Albergue UAGRM.\n\n"
+                        f"Lamentablemente, en esta ocasión no has sido seleccionado dentro de los cupos disponibles para esta convocatoria.\n\n"
+                        f"Puedes verificar los detalles en tu panel de usuario:\n"
+                        f"{request.build_absolute_uri('/dashboard/')}"
+                    )
+                    send_mail(
+                        asunto,
+                        cuerpo,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                        [sol.postulante.user.email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Error al enviar correo de no seleccionado: {e}")
             sol.save()
 
         LogAccion.objects.create(
@@ -360,6 +402,26 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
                 objeto_id=postulante.pk,
                 objeto_tipo='Postulante'
             )
+
+            # Enviar correo de aprobación al postulante
+            try:
+                asunto = "Tu postulación a la Beca Albergue UAGRM ha sido Aprobada"
+                cuerpo = (
+                    f"Hola {postulante.user.first_name or postulante.nombre_completo or postulante.user.username},\n\n"
+                    f"Nos complace informarte que tu postulación al programa de Beca Albergue ha sido aprobada por el comité evaluador.\n\n"
+                    f"Tu postulación ahora pasará al proceso de selección final y optimización de cupos disponibles.\n\n"
+                    f"Puedes hacer seguimiento en tu panel de usuario en:\n"
+                    f"{request.build_absolute_uri('/dashboard/')}"
+                )
+                send_mail(
+                    asunto,
+                    cuerpo,
+                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                    [postulante.user.email],
+                    fail_silently=True
+                )
+            except Exception as e:
+                print(f"Error al enviar correo de aprobación: {e}")
 
             messages.success(request, f'Postulación de {postulante.nombre_completo} aprobada correctamente.')
             return redirect('evaluaciones:detalle', pk=postulante.pk)
