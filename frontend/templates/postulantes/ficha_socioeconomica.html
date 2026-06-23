@@ -613,6 +613,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const puedeEditar = {% if puede_editar %}true{% else %}false{% endif %};
+
     if (addBtn && tbody && totalFormsInput) {
         addBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -633,11 +635,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const idInput = row.querySelector('input[name$="-id"]');
                     
                     if (idInput && !idInput.value) {
-                        // Unsaved row: remove it from DOM directly
                         row.remove();
                     } else if (deleteInput) {
-                        // Saved row: mark DELETE as checked and hide it
                         deleteInput.checked = true;
+                        row.classList.remove('familiar-row');
                         row.style.display = 'none';
                     } else {
                         row.remove();
@@ -647,8 +648,79 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Run initially to ensure correct sequential numbering
-        recalculateRowNumbers();
+        // Control automático de filas según número de integrantes
+        const selectIntegrantes = document.getElementById('id_num_integrantes');
+
+        function addRow() {
+            const currentFormCount = parseInt(totalFormsInput.value);
+            let newRowHtml = emptyTemplate.replace(/__prefix__/g, currentFormCount);
+            tbody.insertAdjacentHTML('beforeend', newRowHtml);
+            totalFormsInput.value = currentFormCount + 1;
+        }
+
+        function removeLastRow() {
+            const rows = tbody.querySelectorAll('.familiar-row');
+            if (rows.length > 0) {
+                const lastRow = rows[rows.length - 1];
+                const deleteInput = lastRow.querySelector('input[name$="-DELETE"]');
+                const idInput = lastRow.querySelector('input[name$="-id"]');
+                if (idInput && idInput.value) {
+                    if (deleteInput) deleteInput.checked = true;
+                    lastRow.classList.remove('familiar-row');
+                    lastRow.style.display = 'none';
+                } else {
+                    lastRow.remove();
+                }
+            }
+        }
+
+        function adjustRows() {
+            if (!puedeEditar) return;
+            const val = selectIntegrantes.value;
+            let targetRows = 1;
+            let showAddBtn = false;
+
+            if (val === "Hasta 1 miembro") {
+                targetRows = 1;
+            } else if (val === "De 2 a 3 miembros") {
+                targetRows = 2;
+            } else if (val === "De 3 a 4 miembros") {
+                targetRows = 3;
+            } else if (val === "Más de 4 miembros") {
+                targetRows = 4;
+                showAddBtn = true;
+            }
+
+            // Mostrar/Ocultar botón de agregar miembro
+            if (showAddBtn) {
+                addBtn.style.display = 'inline-block';
+            } else {
+                addBtn.style.display = 'none';
+            }
+
+            let activeRows = tbody.querySelectorAll('.familiar-row');
+            
+            // Ajustar cantidad de filas
+            while (activeRows.length < targetRows) {
+                addRow();
+                activeRows = tbody.querySelectorAll('.familiar-row');
+            }
+            
+            while (activeRows.length > targetRows) {
+                removeLastRow();
+                activeRows = tbody.querySelectorAll('.familiar-row');
+            }
+
+            recalculateRowNumbers();
+        }
+
+        if (selectIntegrantes) {
+            selectIntegrantes.addEventListener('change', adjustRows);
+            // Ejecutar al inicio para ajustar las filas iniciales si se está editando
+            adjustRows();
+        } else {
+            recalculateRowNumbers();
+        }
     }
 });
 </script>
