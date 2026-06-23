@@ -226,22 +226,45 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
 
     def _get_catalogo(self, postulante):
         """Obtiene las materias del catálogo para la carrera y semestre activo del postulante."""
-        from apps.parametros.models import MateriaCatalogo, SemestreRegistro
+        from apps.parametros.models import MateriaCatalogo, SemestreRegistro, Carrera
         semestre = SemestreRegistro.get_semestre_activo()
         
-        # Mapeo de compatibilidad para nombres abreviados o desalineados
+        # 1. Normalizar y buscar la carrera en la base de datos
         carrera_nombre = postulante.carrera
         mapeo_nombres = {
             'Ing. en Sistemas': 'Ingeniería en Sistemas',
+            'Ingeniería en Sistemas': 'Ing. en Sistemas',
             'Ing. en Agropecuaria': 'Ingeniería Agropecuaria',
+            'Ingeniería Agropecuaria': 'Ing. en Agropecuaria',
             'Lic. en Contaduría': 'Contaduría Pública',
+            'Contaduría Pública': 'Lic. en Contaduría',
         }
-        carrera_nombre = mapeo_nombres.get(carrera_nombre, carrera_nombre)
+        
+        carrera_obj = Carrera.objects.filter(nombre__iexact=carrera_nombre).first()
+        if not carrera_obj and carrera_nombre in mapeo_nombres:
+            carrera_obj = Carrera.objects.filter(nombre__iexact=mapeo_nombres[carrera_nombre]).first()
+            
+        if not carrera_obj:
+            # Búsqueda difusa para coincidir abreviaciones parciales
+            carrera_obj = Carrera.objects.filter(nombre__icontains=carrera_nombre[:10]).first()
+            
+        if not carrera_obj:
+            return MateriaCatalogo.objects.none(), semestre
 
+        # 2. Buscar materias del catálogo
+        # Intentar filtrar por carrera y por el periodo académico activo (ej: 2025-2)
         materias = MateriaCatalogo.objects.filter(
-            carrera__nombre__iexact=carrera_nombre,
+            carrera=carrera_obj,
             semestre_academico=semestre,
         ).order_by('orden', 'sigla')
+        
+        # Fallback: si no hay materias con el periodo activo (por ejemplo, si el administrador configuró 
+        # niveles como "SEGUNDO SEMESTRE" en la columna semestre_academico), cargamos todas las materias de esa carrera.
+        if not materias.exists():
+            materias = MateriaCatalogo.objects.filter(
+                carrera=carrera_obj
+            ).order_by('semestre_academico', 'orden', 'sigla')
+            
         return materias, semestre
 
     def get(self, request, *args, **kwargs):
