@@ -224,6 +224,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='admin@uagrm.edu.bo')
+EMAIL_TIMEOUT = 5  # Limitar tiempo de espera a 5 segundos para evitar WORKER TIMEOUT en producción
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
