@@ -389,88 +389,98 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
         return ctx
 
     def post(self, request, *args, **kwargs):
-        from django.core.mail import send_mail
-        from django.conf import settings
-        
-        postulante = self.get_object()
-        solicitud, _ = SolicitudBeca.objects.get_or_create(postulante=postulante)
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            postulante = self.get_object()
+            solicitud, _ = SolicitudBeca.objects.get_or_create(postulante=postulante)
 
-        if 'aprobar' in request.POST:
-            solicitud.estado = 'Aprobado'
-            solicitud.fecha_revision = timezone.now()
-            solicitud.motivo_rechazo = None
-            solicitud.save()
+            if 'aprobar' in request.POST:
+                solicitud.estado = 'Aprobado'
+                solicitud.fecha_revision = timezone.now()
+                solicitud.motivo_rechazo = None
+                solicitud.save()
 
-            # Registrar en LogAccion
-            LogAccion.objects.create(
-                usuario=request.user,
-                accion='evaluacion',
-                detalles={'postulante': postulante.user.username, 'nuevo_estado': 'Aprobado'},
-                objeto_id=postulante.pk,
-                objeto_tipo='Postulante'
-            )
-
-            # Enviar correo de aprobación al postulante
-            try:
-                asunto = "Tu postulación a la Beca Albergue UAGRM ha sido Aprobada"
-                cuerpo = (
-                    f"Hola {postulante.user.first_name or postulante.nombre_completo or postulante.user.username},\n\n"
-                    f"Nos complace informarte que tu postulación al programa de Beca Albergue ha sido aprobada por el comité evaluador.\n\n"
-                    f"Tu postulación ahora pasará al proceso de selección final y optimización de cupos disponibles.\n\n"
-                    f"Puedes hacer seguimiento en tu panel de usuario en:\n"
-                    f"{request.build_absolute_uri('/dashboard/')}"
+                # Registrar en LogAccion
+                LogAccion.objects.create(
+                    usuario=request.user,
+                    accion='evaluacion',
+                    detalles={'postulante': postulante.user.username, 'nuevo_estado': 'Aprobado'},
+                    objeto_id=postulante.pk,
+                    objeto_tipo='Postulante'
                 )
-                send_mail(
-                    asunto,
-                    cuerpo,
-                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                    [postulante.user.email],
-                    fail_silently=False
-                )
-            except Exception as e:
-                print(f"Error al enviar correo de aprobación: {e}")
 
-            messages.success(request, f'Postulación de {postulante.nombre_completo} aprobada correctamente.')
-            return redirect('evaluaciones:detalle', pk=postulante.pk)
+                # Enviar correo de aprobación al postulante
+                try:
+                    asunto = "Tu postulación a la Beca Albergue UAGRM ha sido Aprobada"
+                    cuerpo = (
+                        f"Hola {postulante.user.first_name or postulante.nombre_completo or postulante.user.username},\n\n"
+                        f"Nos complace informarte que tu postulación al programa de Beca Albergue ha sido aprobada por el comité evaluador.\n\n"
+                        f"Tu postulación ahora pasará al proceso de selección final y optimización de cupos disponibles.\n\n"
+                        f"Puedes hacer seguimiento en tu panel de usuario en:\n"
+                        f"{request.build_absolute_uri('/dashboard/')}"
+                    )
+                    send_mail(
+                        asunto,
+                        cuerpo,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                        [postulante.user.email],
+                        fail_silently=False
+                    )
+                except Exception as e:
+                    print(f"Error al enviar correo de aprobación: {e}")
 
-        elif 'rechazar' in request.POST:
-            motivo = request.POST.get('motivo_rechazo', '').strip()
-            if not motivo or len(motivo) < 10:
-                messages.error(request, 'El motivo del rechazo es obligatorio y debe tener al menos 10 caracteres.')
+                messages.success(request, f'Postulación de {postulante.nombre_completo} aprobada correctamente.')
                 return redirect('evaluaciones:detalle', pk=postulante.pk)
 
-            solicitud.estado = 'Rechazado'
-            solicitud.motivo_rechazo = motivo
-            solicitud.fecha_revision = timezone.now()
-            solicitud.save()
+            elif 'rechazar' in request.POST:
+                motivo = request.POST.get('motivo_rechazo', '').strip()
+                if not motivo or len(motivo) < 10:
+                    messages.error(request, 'El motivo del rechazo es obligatorio y debe tener al menos 10 caracteres.')
+                    return redirect('evaluaciones:detalle', pk=postulante.pk)
 
-            # Registrar en LogAccion
-            LogAccion.objects.create(
-                usuario=request.user,
-                accion='evaluacion',
-                detalles={'postulante': postulante.user.username, 'nuevo_estado': 'Rechazado', 'motivo': motivo},
-                objeto_id=postulante.pk,
-                objeto_tipo='Postulante'
-            )
+                solicitud.estado = 'Rechazado'
+                solicitud.motivo_rechazo = motivo
+                solicitud.fecha_revision = timezone.now()
+                solicitud.save()
 
-            # Enviar correo
-            try:
-                asunto = "Tu postulación a la Beca Albergue ha sido rechazada"
-                cuerpo = f"Hola {postulante.user.first_name or postulante.nombre_completo},\n\nTu postulación ha sido rechazada por el siguiente motivo:\n\n{motivo}\n\nPuedes ver más detalles en tu panel de usuario en:\n{request.build_absolute_uri('/dashboard/mi-postulacion/')}"
-                send_mail(
-                    asunto,
-                    cuerpo,
-                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                    [postulante.user.email],
-                    fail_silently=False
+                # Registrar en LogAccion
+                LogAccion.objects.create(
+                    usuario=request.user,
+                    accion='evaluacion',
+                    detalles={'postulante': postulante.user.username, 'nuevo_estado': 'Rechazado', 'motivo': motivo},
+                    objeto_id=postulante.pk,
+                    objeto_tipo='Postulante'
                 )
-            except Exception as e:
-                print(f"Error al enviar correo: {e}")
 
-            messages.success(request, f'Postulación de {postulante.nombre_completo} rechazada (notificación de correo omitida o con error).')
+                # Enviar correo
+                try:
+                    asunto = "Tu postulación a la Beca Albergue ha sido rechazada"
+                    cuerpo = f"Hola {postulante.user.first_name or postulante.nombre_completo},\n\nTu postulación ha sido rechazada por el siguiente motivo:\n\n{motivo}\n\nPuedes ver más detalles en tu panel de usuario en:\n{request.build_absolute_uri('/dashboard/mi-postulacion/')}"
+                    send_mail(
+                        asunto,
+                        cuerpo,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                        [postulante.user.email],
+                        fail_silently=False
+                    )
+                except Exception as e:
+                    print(f"Error al enviar correo: {e}")
+
+                messages.success(request, f'Postulación de {postulante.nombre_completo} rechazada (notificación de correo omitida o con error).')
+                return redirect('evaluaciones:detalle', pk=postulante.pk)
+
             return redirect('evaluaciones:detalle', pk=postulante.pk)
 
-        return redirect('evaluaciones:detalle', pk=postulante.pk)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error al procesar la postulación: {str(e)}")
+            pk = self.kwargs.get('pk') or (self.object.pk if hasattr(self, 'object') and self.object else None)
+            if pk:
+                return redirect('evaluaciones:detalle', pk=pk)
+            return redirect('evaluaciones:panel_evaluador')
 
 
 class EvaluarPostulanteView(EvaluadorRequeridoMixin, TemplateView):
