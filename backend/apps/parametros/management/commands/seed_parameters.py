@@ -52,7 +52,7 @@ class Command(BaseCommand):
             ('Más de 6000 Bs.', 7),
             ('De 4001 a 6000 Bs.', 8),
             ('De 2501 a 4000 Bs.', 9),
-            ('Hasta 2500 Bs.', 10),
+            ('Menor a 2500 Bs.', 10),
         ]
         for opt, pts in x3_opts:
             OpcionSocioeconomica.objects.create(variable='rango_ingresos', opcion_texto=opt, puntaje=pts)
