@@ -34,13 +34,13 @@ DJANGO_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 ]
 
 THIRD_PARTY_APPS = [
     'django_htmx',
+    'cloudinary_storage',
     'cloudinary',
 ]
 
