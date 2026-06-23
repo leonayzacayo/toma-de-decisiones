@@ -108,18 +108,33 @@ DB_ENGINE = config('DB_ENGINE', default='sqlite')
 DB_HOST = config('DB_HOST', default='')
 
 if DATABASE_URL:
-    # Soporte automático para Railway PostgreSQL usando DATABASE_URL
+    # Soporte automático dinámico para Railway PostgreSQL o MySQL usando DATABASE_URL
     url = urllib.parse.urlparse(DATABASE_URL)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': url.path[1:],
-            'USER': url.username,
-            'PASSWORD': url.password,
-            'HOST': url.hostname,
-            'PORT': url.port or 5432,
+    if url.scheme == 'mysql':
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': url.path[1:],
+                'USER': url.username,
+                'PASSWORD': url.password,
+                'HOST': url.hostname,
+                'PORT': url.port or 3306,
+                'OPTIONS': {
+                    'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                }
+            }
         }
-    }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': url.path[1:],
+                'USER': url.username,
+                'PASSWORD': url.password,
+                'HOST': url.hostname,
+                'PORT': url.port or 5432,
+            }
+        }
 elif DB_ENGINE == 'mysql':
     DATABASES = {
         'default': {
