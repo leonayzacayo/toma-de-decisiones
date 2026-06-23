@@ -152,7 +152,7 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
             request,
             f'Optimización ejecutada con éxito. Se asignaron {len(seleccionados_ids)} becas de {total_solicitudes} postulantes activos.'
         )
-        return redirect('panel_evaluador')
+        return redirect('evaluaciones:panel_evaluador')
 
 
 class ExportarExcelView(EvaluadorRequeridoMixin, View):
