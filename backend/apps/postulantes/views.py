@@ -144,6 +144,9 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         postulante = self._get_postulante()
+        if postulante.ficha_completada:
+            messages.warning(request, 'Tu postulación ya ha sido enviada y no puede ser modificada.')
+            return redirect('postulantes:panel')
         ficha = getattr(postulante, 'ficha_socioeconomica', None)
         academicos = getattr(postulante, 'datos_academicos', None)
         
@@ -161,6 +164,9 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         postulante = self._get_postulante()
+        if postulante.ficha_completada:
+            messages.error(request, 'Tu postulación ya ha sido enviada y no puede ser modificada.')
+            return redirect('postulantes:panel')
         ficha = getattr(postulante, 'ficha_socioeconomica', None)
         academicos = getattr(postulante, 'datos_academicos', None)
         
@@ -269,6 +275,9 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         postulante = self.get_postulante()
+        if postulante.ficha_completada:
+            messages.warning(request, 'Tu postulación ya ha sido enviada y no puede ser modificada.')
+            return redirect('postulantes:panel')
         datos_acad, _ = DatosAcademicos.objects.get_or_create(
             postulante=postulante,
             defaults={'ppa': 0.0, 'materias_aprobadas': 0}
@@ -299,6 +308,9 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         postulante = self.get_postulante()
+        if postulante.ficha_completada:
+            messages.error(request, 'Tu postulación ya ha sido enviada y no puede ser modificada.')
+            return redirect('postulantes:panel')
         datos_acad, _ = DatosAcademicos.objects.get_or_create(
             postulante=postulante,
             defaults={'ppa': 0.0, 'materias_aprobadas': 0}

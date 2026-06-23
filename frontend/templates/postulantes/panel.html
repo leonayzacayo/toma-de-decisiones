@@ -94,7 +94,9 @@
             </div>
           </div>
           <div>
-            {% if estado_postulacion.ficha_completa %}
+            {% if postulante.ficha_completada %}
+              <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-lock-fill me-1"></i>Enviado</span>
+            {% elif estado_postulacion.ficha_completa %}
               <a href="{% url 'postulantes:ficha_socioeconomica' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
                 <i class="bi bi-pencil-square me-1"></i> Editar Ficha
               </a>
@@ -124,7 +126,9 @@
             </div>
           </div>
           <div>
-            {% if estado_postulacion.tiene_materias %}
+            {% if postulante.ficha_completada %}
+              <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-lock-fill me-1"></i>Enviado</span>
+            {% elif estado_postulacion.tiene_materias %}
               <a href="{% url 'postulantes:registro_materias' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold">
                 <i class="bi bi-pencil-square me-1"></i> Editar Materias
               </a>
