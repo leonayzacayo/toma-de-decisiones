@@ -357,6 +357,14 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
         )
 
     def get_context_data(self, **kwargs):
+        # Recalcular puntaje antes de mostrar para asegurar que esté al día
+        from apps.postulantes.views import calcular_y_guardar_puntaje
+        try:
+            calcular_y_guardar_puntaje(self.object)
+            self.object.refresh_from_db()
+        except Exception as e:
+            print(f"Error al recalcular puntaje en detalle: {e}")
+
         ctx = super().get_context_data(**kwargs)
         ctx['obs_form'] = ObservacionEvaluacionForm()
 
