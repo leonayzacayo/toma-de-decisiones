@@ -289,11 +289,6 @@
 
           <form method="post" action="">
             {% csrf_token %}
-            <div class="mb-3">
-              <label class="form-label small fw-semibold text-muted mb-1">Observaciones Internas</label>
-              <textarea name="observaciones_internas" class="form-control form-control-sm" rows="3" placeholder="Notas internas visibles solo para el evaluador...">{{ solicitud_beca.observaciones_internas|default:'' }}</textarea>
-            </div>
-
             <div class="d-grid gap-2">
               {% if solicitud_beca.rechazado %}
                 <a href="{% url 'evaluaciones:reactivar_postulante' postulante.pk %}" class="btn btn-warning btn-sm rounded-3 fw-bold">
@@ -390,24 +385,14 @@
             <label class="form-label small fw-semibold text-muted mb-1">Motivo del rechazo *</label>
             <textarea name="motivo_rechazo" class="form-control rounded-3" rows="4" required placeholder="Especificar detalles del rechazo (mínimo 10 caracteres)..."></textarea>
           </div>
-          
-          <!-- Pasar observaciones internas también en el post de rechazo -->
-          <input type="hidden" name="observaciones_internas" id="observaciones_internas_hidden">
         </div>
         <div class="modal-footer border-0 pt-0">
           <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" name="rechazar" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="syncObservaciones()">Confirmar Rechazo</button>
+          <button type="submit" name="rechazar" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-sm">Confirmar Rechazo</button>
         </div>
       </form>
     </div>
   </div>
 </div>
-
-<script>
-  function syncObservaciones() {
-    const mainObs = document.querySelector('textarea[name="observaciones_internas"]').value;
-    document.getElementById('observaciones_internas_hidden').value = mainObs;
-  }
-</script>
 
 {% endblock %}

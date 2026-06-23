@@ -390,7 +390,6 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
         if 'aprobar' in request.POST:
             solicitud.estado = 'Aprobado'
             solicitud.fecha_revision = timezone.now()
-            solicitud.observaciones_internas = request.POST.get('observaciones_internas', '')
             solicitud.motivo_rechazo = None
             solicitud.save()
 
@@ -435,7 +434,6 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
             solicitud.estado = 'Rechazado'
             solicitud.motivo_rechazo = motivo
             solicitud.fecha_revision = timezone.now()
-            solicitud.observaciones_internas = request.POST.get('observaciones_internas', '')
             solicitud.save()
 
             # Registrar en LogAccion
