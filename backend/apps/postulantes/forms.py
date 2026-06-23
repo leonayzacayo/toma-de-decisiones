@@ -157,7 +157,7 @@ class MiembroFamiliarForm(forms.ModelForm):
         fields = ('nombre_completo', 'parentesco', 'edad', 'ocupacion', 'observacion')
         widgets = {
             'nombre_completo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Juan Pérez'}),
-            'parentesco': forms.Select(attrs={'class': 'form-select'}, choices=MiembroFamiliar.parentesco_choices),
+            'parentesco': forms.Select(attrs={'class': 'form-select'}, choices=[('', 'Seleccionar...')] + MiembroFamiliar.parentesco_choices),
             'edad': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej. 15'}),
             'ocupacion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej. Estudiante'}),
             'observacion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),

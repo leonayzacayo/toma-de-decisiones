@@ -145,7 +145,7 @@
           </div>
         </div>
 
-        {% if form_ficha.errors or form_acad.errors or formset.errors %}
+        {% if form_ficha.errors or form_acad.errors or formset.errors or formset.non_form_errors %}
           <div class="alert alert-danger border-0 rounded-0 shadow-sm mb-4">
             <h6 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Por favor corrige los errores del formulario:</h6>
             <ul class="mb-0 small">
@@ -154,6 +154,14 @@
               {% endfor %}
               {% for field, errors in form_acad.errors.items %}
                 <li><strong>{{ field.label|default:field }}:</strong> {{ errors|join:", " }}</li>
+              {% endfor %}
+              {% if formset.non_form_errors %}
+                <li><strong>Grupo Familiar:</strong> {{ formset.non_form_errors|join:", " }}</li>
+              {% endif %}
+              {% for f_errs in formset.errors %}
+                {% for field, errors in f_errs.items %}
+                  <li><strong>Miembro Familiar (Fila {{ forloop.parentloop.counter }}):</strong> {{ field }}: {{ errors|join:", " }}</li>
+                {% endfor %}
               {% endfor %}
             </ul>
           </div>
