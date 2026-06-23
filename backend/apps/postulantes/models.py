@@ -6,9 +6,14 @@ from apps.convocatorias.models import Convocatoria
 
 
 def validate_file_size(value):
-    filesize = value.size
-    if filesize > 5 * 1024 * 1024:  # 5 MB
-        raise ValidationError("El archivo no puede superar los 5 MB.")
+    if not value:
+        return
+    try:
+        filesize = value.size
+        if filesize and filesize > 5 * 1024 * 1024:  # 5 MB
+            raise ValidationError("El archivo no puede superar los 5 MB.")
+    except (AttributeError, ValueError, TypeError):
+        pass
 
 
 class Postulante(models.Model):
