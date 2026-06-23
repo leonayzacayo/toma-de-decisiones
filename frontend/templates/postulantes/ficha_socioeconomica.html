@@ -345,7 +345,7 @@
           </div>
           <div class="col-md-6">
             <div class="ficha-field-group">
-              <label class="ficha-label">Respaldo Procedencia (Opcional)</label>
+              <label class="ficha-label">Respaldo Procedencia <span class="asterisk-required">*</span></label>
               {{ form_ficha.doc_ingresos }}
               {% if form_ficha.instance.doc_ingresos %}
                 <div class="mt-2">
@@ -404,7 +404,7 @@
           </div>
           <div class="col-md-6">
             <div class="ficha-field-group">
-              <label class="ficha-label">Respaldo Tenencia / Vivienda (Opcional)</label>
+              <label class="ficha-label">Respaldo Tenencia / Vivienda <span class="asterisk-required">*</span></label>
               {{ form_ficha.doc_vivienda }}
               {% if form_ficha.instance.doc_vivienda %}
                 <div class="mt-2">

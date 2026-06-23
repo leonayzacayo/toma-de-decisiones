@@ -108,6 +108,10 @@ class FichaSocioeconomicaForm(forms.ModelForm):
             else:
                 self.fields['num_hijos'].initial = "Más de 1 hijo"
 
+        # Hacer obligatorios los respaldos de procedencia e ingresos por defecto
+        self.fields['doc_ingresos'].required = True
+        self.fields['doc_vivienda'].required = True
+
         # If editing and files exist, don't require them again
         if self.instance and self.instance.pk:
             if self.instance.archivo_boleta_inscripcion:
@@ -116,6 +120,10 @@ class FichaSocioeconomicaForm(forms.ModelForm):
                 self.fields['archivo_historico_academico'].required = False
             if self.instance.archivo_carnet_identidad:
                 self.fields['archivo_carnet_identidad'].required = False
+            if self.instance.doc_ingresos:
+                self.fields['doc_ingresos'].required = False
+            if self.instance.doc_vivienda:
+                self.fields['doc_vivienda'].required = False
 
     def clean_num_integrantes(self):
         val = self.cleaned_data['num_integrantes']
