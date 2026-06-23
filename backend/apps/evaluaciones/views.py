@@ -417,7 +417,7 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
                     cuerpo,
                     getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
                     [postulante.user.email],
-                    fail_silently=True
+                    fail_silently=False
                 )
             except Exception as e:
                 print(f"Error al enviar correo de aprobación: {e}")
@@ -454,7 +454,7 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
                     cuerpo,
                     getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
                     [postulante.user.email],
-                    fail_silently=True
+                    fail_silently=False
                 )
             except Exception as e:
                 print(f"Error al enviar correo: {e}")
