@@ -84,7 +84,8 @@ def calcular_y_guardar_puntaje(postulante):
     solicitud.puntaje_academico = p_academico
     solicitud.puntaje_socioeconomico = p_socioeconomico
     solicitud.puntaje_total = p_total
-    solicitud.estado = "Postulación completada" if postulante.ficha_completada else "Pendiente"
+    if solicitud.estado in (None, '', 'Pendiente', 'Postulación completada'):
+        solicitud.estado = "Postulación completada" if postulante.ficha_completada else "Pendiente"
     solicitud.save()
 
     # Sincronizar con el modelo legado Evaluacion
@@ -93,7 +94,13 @@ def calcular_y_guardar_puntaje(postulante):
     evaluacion.puntaje_academico = p_academico
     evaluacion.puntaje_socioeconomico = p_socioeconomico
     evaluacion.puntaje_total = p_total
-    evaluacion.estado = Evaluacion.ESTADO_EVALUADO if postulante.ficha_completada else Evaluacion.ESTADO_PENDIENTE
+    
+    if solicitud.estado == 'Aprobado':
+        evaluacion.estado = Evaluacion.ESTADO_APROBADO
+    elif solicitud.estado == 'Rechazado':
+        evaluacion.estado = Evaluacion.ESTADO_RECHAZADO
+    else:
+        evaluacion.estado = Evaluacion.ESTADO_EVALUADO if postulante.ficha_completada else Evaluacion.ESTADO_PENDIENTE
     evaluacion.save()
 
     return solicitud

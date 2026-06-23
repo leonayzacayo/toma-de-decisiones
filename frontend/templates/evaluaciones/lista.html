@@ -126,10 +126,14 @@
               {% else %}—{% endif %}
             </td>
             <td class="text-center">
-              {% if postulante.evaluacion and postulante.evaluacion.estado != 'pendiente' %}
-              <span class="fw-bold text-primary">
-                {{ postulante.evaluacion.puntaje_total|floatformat:1 }}
-              </span>
+              {% if postulante.solicitud_beca.puntaje_total is not None %}
+                <span class="fw-bold text-primary">
+                  {{ postulante.solicitud_beca.puntaje_total|floatformat:1 }}
+                </span>
+              {% elif postulante.evaluacion and postulante.evaluacion.estado != 'pendiente' %}
+                <span class="fw-bold text-primary">
+                  {{ postulante.evaluacion.puntaje_total|floatformat:1 }}
+                </span>
               {% else %}—{% endif %}
             </td>
             <td class="text-center">

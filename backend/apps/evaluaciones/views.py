@@ -402,6 +402,9 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
                 solicitud.motivo_rechazo = None
                 solicitud.save()
 
+                postulante.ficha_completada = True
+                postulante.save()
+
                 # Registrar en LogAccion
                 LogAccion.objects.create(
                     usuario=request.user,
@@ -444,6 +447,9 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
                 solicitud.motivo_rechazo = motivo
                 solicitud.fecha_revision = timezone.now()
                 solicitud.save()
+
+                postulante.ficha_completada = True
+                postulante.save()
 
                 # Registrar en LogAccion
                 LogAccion.objects.create(
@@ -545,6 +551,9 @@ def rechazar_postulante(request, pk):
         solicitud.estado = 'Rechazado'
         solicitud.notificado_rechazo = notificar
         solicitud.save()
+
+        postulante_obj.ficha_completada = True
+        postulante_obj.save()
 
         if notificar:
             try:
