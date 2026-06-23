@@ -192,9 +192,10 @@
               <label class="ficha-label">Carrera <span class="asterisk-required">*</span></label>
               <select class="form-select ficha-input-edit" name="carrera" required {% if not puede_editar %}disabled{% endif %}>
                 <option value="" disabled {% if not postulante.carrera %}selected{% endif %}>Seleccione su carrera...</option>
-                <option value="Ing. en Sistemas" {% if postulante.carrera == "Ing. en Sistemas" %}selected{% endif %}>Ing. en Sistemas</option>
-                <option value="Ing. en Agropecuaria" {% if postulante.carrera == "Ing. en Agropecuaria" %}selected{% endif %}>Ing. en Agropecuaria</option>
-                <option value="Lic. en Contaduría" {% if postulante.carrera == "Lic. en Contaduría" %}selected{% endif %}>Lic. en Contaduría</option>
+                <option value="Ingeniería en Sistemas" {% if postulante.carrera == "Ingeniería en Sistemas" or postulante.carrera == "Ing. en Sistemas" %}selected{% endif %}>Ingeniería en Sistemas</option>
+                <option value="Ingeniería Agropecuaria" {% if postulante.carrera == "Ingeniería Agropecuaria" or postulante.carrera == "Ing. en Agropecuaria" %}selected{% endif %}>Ingeniería Agropecuaria</option>
+                <option value="Contaduría Pública" {% if postulante.carrera == "Contaduría Pública" or postulante.carrera == "Lic. en Contaduría" %}selected{% endif %}>Contaduría Pública</option>
+                <option value="Industrialización de Alimentos" {% if postulante.carrera == "Industrialización de Alimentos" %}selected{% endif %}>Industrialización de Alimentos</option>
               </select>
             </div>
           </div>

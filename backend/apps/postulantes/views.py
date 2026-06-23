@@ -228,8 +228,18 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
         """Obtiene las materias del catálogo para la carrera y semestre activo del postulante."""
         from apps.parametros.models import MateriaCatalogo, SemestreRegistro
         semestre = SemestreRegistro.get_semestre_activo()
+        
+        # Mapeo de compatibilidad para nombres abreviados o desalineados
+        carrera_nombre = postulante.carrera
+        mapeo_nombres = {
+            'Ing. en Sistemas': 'Ingeniería en Sistemas',
+            'Ing. en Agropecuaria': 'Ingeniería Agropecuaria',
+            'Lic. en Contaduría': 'Contaduría Pública',
+        }
+        carrera_nombre = mapeo_nombres.get(carrera_nombre, carrera_nombre)
+
         materias = MateriaCatalogo.objects.filter(
-            carrera__nombre__iexact=postulante.carrera,
+            carrera__nombre__iexact=carrera_nombre,
             semestre_academico=semestre,
         ).order_by('orden', 'sigla')
         return materias, semestre
