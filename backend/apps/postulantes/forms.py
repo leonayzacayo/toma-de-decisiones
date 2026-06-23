@@ -86,27 +86,31 @@ class FichaSocioeconomicaForm(forms.ModelForm):
             opciones = OpcionSocioeconomica.objects.filter(variable=var_name)
             self.fields[var_name].choices = [(opt.opcion_texto, opt.opcion_texto) for opt in opciones]
 
+        # Map existing integer values back to selected string options in the form
         if self.instance and self.instance.pk:
-            # Map existing integer values back to selected string options in the form
-            # num_integrantes mapping
             num = self.instance.num_integrantes
-            if num <= 1:
-                self.fields['num_integrantes'].initial = "Hasta 1 miembro"
-            elif num in (2, 3):
-                self.fields['num_integrantes'].initial = "De 2 a 3 miembros"
-            elif num == 4:
-                self.fields['num_integrantes'].initial = "De 3 a 4 miembros"
-            else:
-                self.fields['num_integrantes'].initial = "Más de 4 miembros"
-
-            # num_hijos mapping
             hijos = self.instance.num_hijos
-            if hijos == 0:
-                self.fields['num_hijos'].initial = "Sin hijos"
-            elif hijos == 1:
-                self.fields['num_hijos'].initial = "1 hijo"
-            else:
-                self.fields['num_hijos'].initial = "Más de 1 hijo"
+        else:
+            num = 1
+            hijos = 0
+
+        # num_integrantes mapping
+        if num is None or num <= 1:
+            self.initial['num_integrantes'] = "Hasta 1 miembro"
+        elif num in (2, 3):
+            self.initial['num_integrantes'] = "De 2 a 3 miembros"
+        elif num == 4:
+            self.initial['num_integrantes'] = "De 3 a 4 miembros"
+        else:
+            self.initial['num_integrantes'] = "Más de 4 miembros"
+
+        # num_hijos mapping
+        if hijos is None or hijos == 0:
+            self.initial['num_hijos'] = "Sin hijos"
+        elif hijos == 1:
+            self.initial['num_hijos'] = "1 hijo"
+        else:
+            self.initial['num_hijos'] = "Más de 1 hijo"
 
         # Hacer obligatorios los respaldos de procedencia e ingresos por defecto
         self.fields['doc_ingresos'].required = True

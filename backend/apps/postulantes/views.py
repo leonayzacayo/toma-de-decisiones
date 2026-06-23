@@ -174,7 +174,7 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
         form_acad = DatosAcademicosForm(instance=academicos)
         formset = MiembroFamiliarFormSet(request.POST, instance=ficha)
         
-        if form_ficha.is_valid():
+        if form_ficha.is_valid() and formset.is_valid():
             with transaction.atomic():
                 # Guardar Ficha Socioeconómica
                 ficha_obj = form_ficha.save(commit=False)
@@ -183,8 +183,7 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
 
                 # Guardar Miembros Familiares
                 formset.instance = ficha_obj
-                if formset.is_valid():
-                    formset.save()
+                formset.save()
 
                 # No marcamos la ficha como completada automáticamente aquí.
                 # Se marcará cuando el postulante haga clic en "Enviar Postulación".
