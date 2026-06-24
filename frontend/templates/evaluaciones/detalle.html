@@ -244,9 +244,19 @@
             </div>
           </div>
 
-          <h6 class="text-primary small fw-bold border-bottom pb-1">8 y 10. Extras</h6>
+          <h6 class="text-primary small fw-bold border-bottom pb-1">8, 9 y 10. Extras</h6>
           <div class="row g-2 small mb-3">
-            <div class="col-12"><span class="text-muted">Otro Beneficio:</span> {% if f.otro_beneficio %}Sí ({{ f.descripcion_otro_beneficio }}){% else %}No{% endif %}</div>
+            <div class="col-12"><span class="text-muted">Otros Beneficios:</span> {% if f.otro_beneficio %}Sí ({{ f.descripcion_otro_beneficio }}){% else %}No{% endif %}</div>
+            <div class="col-12">
+              <span class="text-muted">Comentario/Aclaración Personal:</span>
+              {% if direccion_extra.comentarios %}
+                <div class="p-2 bg-light rounded mt-1 border text-dark" style="font-style: italic; white-space: pre-wrap;">
+                  "{{ direccion_extra.comentarios }}"
+                </div>
+              {% else %}
+                <span class="text-muted">Sin comentarios adicionales.</span>
+              {% endif %}
+            </div>
           </div>
 
           {% endwith %}
