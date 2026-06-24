@@ -35,6 +35,7 @@ class FichaSocioeconomicaAdmin(admin.ModelAdmin):
 class SolicitudBecaAdmin(admin.ModelAdmin):
     list_display = ('postulante', 'puntaje_total', 'puntaje_academico', 'puntaje_socioeconomico', 'estado', 'fecha_asignacion')
     list_filter = ('estado',)
+    ordering = ('-puntaje_total',)
 
 @admin.register(MateriaSemestre)
 class MateriaSemestreAdmin(admin.ModelAdmin):

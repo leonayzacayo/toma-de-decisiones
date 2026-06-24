@@ -12,3 +12,4 @@ class EvaluacionAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'convocatoria')
     search_fields = ('postulante__nombre_completo', 'postulante__cedula')
     readonly_fields = ('fecha_evaluacion',)
+    ordering = ('-puntaje_total',)

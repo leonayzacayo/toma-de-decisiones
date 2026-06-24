@@ -55,6 +55,64 @@ class PanelEvaluadorView(EvaluadorRequeridoMixin, ListView):
         ctx['cupos_disponibles'] = int(param_cupos.valor) if param_cupos else 10
         ctx['total_completados'] = len(self.object_list)
         ctx['total_seleccionados'] = sum(1 for sol in self.object_list if sol.estado == 'Beca Asignada')
+        
+        # Filtro de postulantes válidos (excluyendo staff/administradores/evaluadores)
+        postulantes_validos = Postulante.objects.exclude(
+            Q(user__is_staff=True) |
+            Q(user__is_superuser=True) |
+            Q(user__perfil__rol='evaluador') |
+            Q(user__perfil__rol='administrador')
+        )
+        
+        # Totales requeridos por el usuario
+        ctx['total_cuentas'] = postulantes_validos.count()
+        ctx['total_pendientes_aprobar'] = postulantes_validos.filter(
+            ficha_completada=True
+        ).filter(
+            Q(solicitud_beca__isnull=True) | Q(solicitud_beca__estado__in=['Pendiente', 'Postulación completada'])
+        ).count()
+        ctx['total_incompletos'] = postulantes_validos.filter(ficha_completada=False).count()
+
+        # Datos para gráfico de distribución por carrera
+        carreras_qs = postulantes_validos.values('carrera').annotate(total=models.Count('id')).order_by('-total')
+        carrera_labels = []
+        carrera_values = []
+        for item in carreras_qs:
+            carrera_labels.append(item['carrera'] or 'No especificada')
+            carrera_values.append(item['total'])
+        ctx['carrera_data'] = {
+            'labels': carrera_labels,
+            'values': carrera_values,
+        }
+
+        # Datos para gráfico de estados
+        estados_qs = SolicitudBeca.objects.filter(
+            postulante__in=postulantes_validos
+        ).values('estado').annotate(total=models.Count('id'))
+        
+        estados_dict = {
+            'Pendiente': 0,
+            'Postulación completada': 0,
+            'Beca Asignada': 0,
+            'No seleccionado': 0,
+            'Rechazado': 0,
+        }
+        for item in estados_qs:
+            estado = item['estado']
+            if estado in estados_dict:
+                estados_dict[estado] = item['total']
+
+        ctx['estado_data'] = {
+            'labels': ['Incompletas', 'Pendientes de Aprobación', 'Becas Asignadas', 'No Seleccionados', 'Rechazados'],
+            'values': [
+                ctx['total_incompletos'],
+                ctx['total_pendientes_aprobar'],
+                estados_dict['Beca Asignada'],
+                estados_dict['No seleccionado'],
+                estados_dict['Rechazado'],
+            ]
+        }
+        
         return ctx
 
 
