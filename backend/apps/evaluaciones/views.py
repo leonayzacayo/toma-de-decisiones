@@ -60,98 +60,105 @@ class PanelEvaluadorView(EvaluadorRequeridoMixin, ListView):
 
 class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
     def post(self, request):
-        # 1. Obtener cupos disponibles
-        param_cupos = ParametroBeca.objects.filter(nombre='cupos_disponibles').first()
-        n_cupos = int(param_cupos.valor) if param_cupos else 10
+        try:
+            # 1. Obtener cupos disponibles
+            param_cupos = ParametroBeca.objects.filter(nombre='cupos_disponibles').first()
+            n_cupos = int(param_cupos.valor) if param_cupos else 10
 
-        # 2. Construir orden dinámico para desempate
-        order_fields = ['-puntaje_total']
-        
-        rules = ReglaDesempate.objects.filter(activo=True).order_by('orden_ejecucion')
-        for rule in rules:
-            prefix = '-' if rule.direccion == 'desc' else ''
-            order_fields.append(prefix + rule.campo_modelo)
+            # 2. Construir orden dinámico para desempate
+            order_fields = ['-puntaje_total']
+            
+            rules = ReglaDesempate.objects.filter(activo=True).order_by('orden_ejecucion')
+            for rule in rules:
+                prefix = '-' if rule.direccion == 'desc' else ''
+                order_fields.append(prefix + rule.campo_modelo)
 
-        # 3. Obtener solicitudes con ficha completa ordenadas, excluyendo rechazados
-        solicitudes = SolicitudBeca.objects.filter(
-            postulante__ficha_completada=True,
-            rechazado=False
-        ).order_by(*order_fields)
+            # 3. Obtener solicitudes con ficha completa ordenadas, excluyendo rechazados
+            solicitudes = SolicitudBeca.objects.filter(
+                postulante__ficha_completada=True,
+                rechazado=False
+            ).order_by(*order_fields)
 
-        total_solicitudes = solicitudes.count()
+            total_solicitudes = solicitudes.count()
 
-        # 4. Asignar becas
-        now = timezone.now()
-        seleccionados_ids = []
-        from django.core.mail import send_mail
-        from django.conf import settings
-        
-        # Tomar los primeros N
-        for idx, sol in enumerate(solicitudes):
-            if idx < n_cupos:
-                sol.estado = 'Beca Asignada'
-                sol.fecha_asignacion = now
-                seleccionados_ids.append(sol.pk)
-                
-                # Enviar correo de asignación
-                try:
-                    asunto = "¡Felicidades! Beca Albergue Asignada"
-                    cuerpo = (
-                        f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
-                        f"Nos complace informarte que has sido seleccionado para la asignación de la Beca Albergue UAGRM.\n\n"
-                        f"Tu puntaje final obtenido es de {sol.puntaje_total:.2f} puntos.\n\n"
-                        f"Puedes verificar los detalles en tu panel de usuario:\n"
-                        f"{request.build_absolute_uri('/dashboard/')}"
-                    )
-                    send_mail(
-                        asunto,
-                        cuerpo,
-                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                        [sol.postulante.user.email],
-                        fail_silently=True
-                    )
-                except Exception as e:
-                    print(f"Error al enviar correo de asignación: {e}")
-            else:
-                sol.estado = 'No seleccionado'
-                sol.fecha_asignacion = None
-                
-                # Enviar correo de no seleccionado
-                try:
-                    asunto = "Resultado del proceso de selección - Beca Albergue"
-                    cuerpo = (
-                        f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
-                        f"Te informamos que ha finalizado el proceso de asignación de la Beca Albergue UAGRM.\n\n"
-                        f"Lamentablemente, en esta ocasión no has sido seleccionado dentro de los cupos disponibles para esta convocatoria.\n\n"
-                        f"Puedes verificar los detalles en tu panel de usuario:\n"
-                        f"{request.build_absolute_uri('/dashboard/')}"
-                    )
-                    send_mail(
-                        asunto,
-                        cuerpo,
-                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                        [sol.postulante.user.email],
-                        fail_silently=True
-                    )
-                except Exception as e:
-                    print(f"Error al enviar correo de no seleccionado: {e}")
-            sol.save()
+            # 4. Asignar becas
+            now = timezone.now()
+            seleccionados_ids = []
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            # Tomar los primeros N
+            for idx, sol in enumerate(solicitudes):
+                if idx < n_cupos:
+                    sol.estado = 'Beca Asignada'
+                    sol.fecha_asignacion = now
+                    seleccionados_ids.append(sol.pk)
+                    
+                    # Enviar correo de asignación
+                    try:
+                        asunto = "¡Felicidades! Beca Albergue Asignada"
+                        p_total = sol.puntaje_total if sol.puntaje_total is not None else 0.0
+                        cuerpo = (
+                            f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
+                            f"Nos complace informarte que has sido seleccionado para la asignación de la Beca Albergue UAGRM.\n\n"
+                            f"Tu puntaje final obtenido es de {p_total:.2f} puntos.\n\n"
+                            f"Puedes verificar los detalles en tu panel de usuario:\n"
+                            f"{request.build_absolute_uri('/dashboard/')}"
+                        )
+                        send_mail(
+                            asunto,
+                            cuerpo,
+                            getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                            [sol.postulante.user.email],
+                            fail_silently=True
+                        )
+                    except Exception as e:
+                        print(f"Error al enviar correo de asignación: {e}")
+                else:
+                    sol.estado = 'No seleccionado'
+                    sol.fecha_asignacion = None
+                    
+                    # Enviar correo de no seleccionado
+                    try:
+                        asunto = "Resultado del proceso de selección - Beca Albergue"
+                        cuerpo = (
+                            f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
+                            f"Te informamos que ha finalizado el proceso de asignación de la Beca Albergue UAGRM.\n\n"
+                            f"Lamentablemente, en esta ocasión no has sido seleccionado dentro de los cupos disponibles para esta convocatoria.\n\n"
+                            f"Puedes verificar los detalles en tu panel de usuario:\n"
+                            f"{request.build_absolute_uri('/dashboard/')}"
+                        )
+                        send_mail(
+                            asunto,
+                            cuerpo,
+                            getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                            [sol.postulante.user.email],
+                            fail_silently=True
+                        )
+                    except Exception as e:
+                        print(f"Error al enviar correo de no seleccionado: {e}")
+                sol.save()
 
-        LogAccion.objects.create(
-            usuario=request.user,
-            accion='evaluacion',
-            detalles={
-                'mensaje': 'Optimización de becas ejecutada',
-                'cupos': n_cupos,
-                'total_postulantes': total_solicitudes,
-                'seleccionados_count': len(seleccionados_ids),
-            }
-        )
+            LogAccion.objects.create(
+                usuario=request.user,
+                accion='evaluacion',
+                detalles={
+                    'mensaje': 'Optimización de becas ejecutada',
+                    'cupos': n_cupos,
+                    'total_postulantes': total_solicitudes,
+                    'seleccionados_count': len(seleccionados_ids),
+                }
+            )
 
-        messages.success(
-            request,
-            f'Optimización ejecutada con éxito. Se asignaron {len(seleccionados_ids)} becas de {total_solicitudes} postulantes activos.'
-        )
+            messages.success(
+                request,
+                f'Optimización ejecutada con éxito. Se asignaron {len(seleccionados_ids)} becas de {total_solicitudes} postulantes activos.'
+            )
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error al ejecutar la optimización: {str(e)}")
+            
         return redirect('evaluaciones:panel_evaluador')
 
 
