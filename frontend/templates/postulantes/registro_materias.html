@@ -67,10 +67,6 @@
               </div>
               <div class="row align-items-center">
                 <div class="col-md-7">
-                  <p class="text-muted small mb-3 mb-md-0">
-                    Sube tu certificado en <strong>PDF o Imagen (PNG, JPG)</strong>. Es <strong>obligatorio</strong>
-                    y sirve de respaldo para que el evaluador valide tus calificaciones. (Máximo 5 MB).
-                  </p>
                   {{ form_acad.certificado_notas_pdf }}
                   {% if form_acad.certificado_notas_pdf.errors %}
                     <div class="invalid-feedback d-block mt-2">{{ form_acad.certificado_notas_pdf.errors.as_text }}</div>
