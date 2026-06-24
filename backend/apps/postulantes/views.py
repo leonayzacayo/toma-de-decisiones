@@ -160,6 +160,20 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
         form_ficha = FichaSocioeconomicaForm(instance=ficha)
         form_acad = DatosAcademicosForm(instance=academicos)
         formset = MiembroFamiliarFormSet(instance=ficha)
+
+        # Deserializar dirección e infraestructura extra de JSON
+        import json
+        direccion_extra = {}
+        if postulante.direccion:
+            try:
+                direccion_extra = json.loads(postulante.direccion)
+            except Exception:
+                # Si hay datos legados que no son JSON, los ponemos en el campo calle
+                direccion_extra = {
+                    'calle': postulante.direccion,
+                    'cant_dormitorios': '1',
+                    'cant_banos': '1',
+                }
         
         return self.render_to_response({
             'form_ficha': form_ficha,
@@ -167,6 +181,7 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
             'formset': formset,
             'postulante': postulante,
             'puede_editar': True,  # Permite editar siempre como solicita el usuario
+            'direccion_extra': direccion_extra,
         })
 
     def post(self, request, *args, **kwargs):
@@ -192,14 +207,27 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
                 formset.instance = ficha_obj
                 formset.save()
 
-                # No marcamos la ficha como completada automáticamente aquí.
-                # Se marcará cuando el postulante haga clic en "Enviar Postulación".
-
                 # Guardar Carrera si se envió en el formulario
                 carrera_val = request.POST.get('carrera')
                 if carrera_val:
                     postulante.carrera = carrera_val
-                    postulante.save()
+
+                # Serializar campos adicionales de la ficha (dirección, ambientes, comentarios) como JSON en dirección
+                import json
+                direccion_data = {
+                    'provincia_residencia': request.POST.get('provincia_residencia', '').strip(),
+                    'zona_anillo': request.POST.get('zona_anillo', '').strip(),
+                    'barrio': request.POST.get('barrio', '').strip(),
+                    'calle': request.POST.get('calle', '').strip(),
+                    'cant_dormitorios': request.POST.get('cant_dormitorios', '1').strip(),
+                    'cant_banos': request.POST.get('cant_banos', '1').strip(),
+                    'cant_comedores': request.POST.get('cant_comedores', '0').strip(),
+                    'cant_salas': request.POST.get('cant_salas', '0').strip(),
+                    'cant_patios': request.POST.get('cant_patios', '0').strip(),
+                    'comentarios': request.POST.get('comentarios', '').strip(),
+                }
+                postulante.direccion = json.dumps(direccion_data)
+                postulante.save()
 
                 # Calcular y guardar puntaje
                 calcular_y_guardar_puntaje(postulante)

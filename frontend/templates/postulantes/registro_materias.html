@@ -120,8 +120,8 @@
             {% else %}
 
             <!-- Info -->
-            <div class="alert alert-info border-0 rounded-3 d-flex align-items-center gap-3 mb-4" role="alert">
-              <span class="fs-4">💡</span>
+            <div class="alert alert-info border-0 rounded-4 d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert" style="background: linear-gradient(135deg, #eef2f7, #e0e8f5); color: #2c3e50;">
+              <span class="fs-3">💡</span>
               <div>
                 <strong>Instrucciones:</strong> Ingresa la nota final de cada materia (0–100).
                 Una materia se considera <strong>aprobada</strong> con nota ≥ 51.
@@ -130,13 +130,44 @@
               </div>
             </div>
 
+            <!-- Panel de Controles (Buscador y Pestañas) -->
+            <div class="card border-0 bg-light rounded-4 p-3 mb-4 shadow-sm">
+              <div class="row g-3 align-items-center">
+                <!-- Buscador -->
+                <div class="col-md-5">
+                  <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 rounded-start-3 text-muted">
+                      <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="materia-search" class="form-control border-start-0 rounded-end-3 py-2" placeholder="Buscar materia por nombre o sigla...">
+                  </div>
+                </div>
+                <!-- Indicador de Resultados/Vacío -->
+                <div class="col-md-7 text-md-end text-muted small" id="search-feedback">
+                  Mostrando todas las materias
+                </div>
+              </div>
+
+              <!-- Pestañas de Semestre Dinámicas -->
+              <div class="mt-3">
+                <label class="form-label text-muted small fw-bold mb-2">Filtrar por Semestre / Nivel:</label>
+                <div class="d-flex flex-wrap gap-2" id="semestre-tabs-container">
+                  <!-- Generado dinámicamente por JS -->
+                  <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 active" data-semestre="all">
+                    Todos
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- Tabla de Materias Precargadas -->
-            <div class="table-responsive mb-4">
-              <table class="table table-hover align-middle" id="materias-table">
+            <div class="table-responsive mb-4 rounded-3 shadow-sm border">
+              <table class="table table-hover align-middle mb-0" id="materias-table">
                 <thead class="table-dark">
                   <tr>
                     <th style="width: 90px;">Sigla</th>
                     <th>Nombre de la Materia</th>
+                    <th style="width: 130px;" class="d-none d-sm-table-cell">Semestre</th>
                     <th style="width: 160px;" class="text-center">
                       Nota Final <small class="fw-normal text-white-50">(0–100)</small>
                     </th>
@@ -145,11 +176,21 @@
                 </thead>
                 <tbody>
                   {% for item in materias_con_nota %}
-                  <tr class="materia-row" data-pk="{{ item.catalogo.pk }}">
+                  <tr class="materia-row" 
+                      data-pk="{{ item.catalogo.pk }}"
+                      data-semestre="{{ item.catalogo.semestre_academico }}"
+                      data-sigla="{{ item.catalogo.sigla|lower }}"
+                      data-nombre="{{ item.catalogo.nombre|lower }}">
                     <td>
                       <span class="badge bg-secondary font-monospace fs-6 px-2">{{ item.catalogo.sigla }}</span>
                     </td>
-                    <td class="fw-semibold">{{ item.catalogo.nombre }}</td>
+                    <td>
+                      <div class="fw-semibold text-dark">{{ item.catalogo.nombre }}</div>
+                      <div class="d-sm-none text-muted small">{{ item.catalogo.semestre_academico }}</div>
+                    </td>
+                    <td class="d-none d-sm-table-cell text-muted small">
+                      {{ item.catalogo.semestre_academico }}
+                    </td>
                     <td class="text-center">
                       <input type="number"
                              name="nota_{{ item.catalogo.pk }}"
@@ -173,6 +214,10 @@
                   {% endfor %}
                 </tbody>
               </table>
+              <div id="no-results-msg" class="p-5 text-center text-muted d-none">
+                <i class="bi bi-search fs-1 d-block mb-2 text-secondary"></i>
+                No se encontraron materias que coincidan con la búsqueda.
+              </div>
             </div>
             {% endif %}
 
@@ -196,9 +241,109 @@
   </div>
 </div>
 
-<!-- JS: actualizar badge de estado en tiempo real -->
+<!-- JS: buscador, filtrado por semestres y badge de estado -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const searchInput = document.getElementById('materia-search');
+  const tableRows = document.querySelectorAll('.materia-row');
+  const noResultsMsg = document.getElementById('no-results-msg');
+  const searchFeedback = document.getElementById('search-feedback');
+  const tabsContainer = document.getElementById('semestre-tabs-container');
+
+  let activeSemestre = 'all';
+
+  // 1. Obtener semestres únicos para construir pestañas dinámicas
+  const semestres = new Set();
+  tableRows.forEach(row => {
+    const sem = row.getAttribute('data-semestre');
+    if (sem) semestres.add(sem);
+  });
+
+  // Ordenar los semestres alfabéticamente/numéricamente
+  const semestresOrdenados = Array.from(semestres).sort();
+
+  // Crear botones de pestañas
+  semestresOrdenados.forEach(sem => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-sm btn-outline-primary rounded-pill px-3';
+    btn.setAttribute('data-semestre', sem);
+    btn.textContent = sem;
+    tabsContainer.appendChild(btn);
+  });
+
+  // Event listener para las pestañas
+  tabsContainer.addEventListener('click', function (e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    // Desactivar pestaña anterior
+    tabsContainer.querySelectorAll('button').forEach(b => b.classList.remove('active', 'btn-primary'));
+    tabsContainer.querySelectorAll('button').forEach(b => b.classList.add('btn-outline-primary'));
+
+    // Activar pestaña actual
+    btn.classList.remove('btn-outline-primary');
+    btn.classList.add('active', 'btn-primary');
+
+    activeSemestre = btn.getAttribute('data-semestre');
+    filterTable();
+  });
+
+  // Event listener para el buscador
+  if (searchInput) {
+    searchInput.addEventListener('input', filterTable);
+  }
+
+  // Función principal de filtrado
+  function filterTable() {
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    let visibleCount = 0;
+    let totalInSemestre = 0;
+
+    tableRows.forEach(row => {
+      const sigla = row.getAttribute('data-sigla') || '';
+      const nombre = row.getAttribute('data-nombre') || '';
+      const sem = row.getAttribute('data-semestre') || '';
+
+      const matchesSearch = sigla.includes(query) || nombre.includes(query);
+      const matchesSemestre = (activeSemestre === 'all') || (sem === activeSemestre);
+
+      if (matchesSemestre) {
+        totalInSemestre++;
+      }
+
+      if (matchesSearch && matchesSemestre) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    // Mensaje de resultados vacíos
+    if (visibleCount === 0 && tableRows.length > 0) {
+      noResultsMsg.classList.remove('d-none');
+    } else {
+      noResultsMsg.classList.add('d-none');
+    }
+
+    // Actualizar texto de feedback
+    if (activeSemestre === 'all') {
+      if (query) {
+        searchFeedback.textContent = `Encontradas ${visibleCount} de ${tableRows.length} materias.`;
+      } else {
+        searchFeedback.textContent = `Mostrando las ${tableRows.length} materias del plan de estudios.`;
+      }
+    } else {
+      if (query) {
+        searchFeedback.textContent = `Encontradas ${visibleCount} de ${totalInSemestre} materias en "${activeSemestre}".`;
+      } else {
+        searchFeedback.textContent = `Mostrando ${totalInSemestre} materias en "${activeSemestre}".`;
+      }
+    }
+  }
+
+  // 2. Control de cambios en inputs de notas (Badge de estado)
   document.querySelectorAll('.nota-input').forEach(function (input) {
     input.addEventListener('input', function () {
       const row = this.closest('.materia-row');
@@ -217,6 +362,9 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   });
+
+  // Ejecutar filtro inicial
+  filterTable();
 });
 </script>
 {% endblock %}

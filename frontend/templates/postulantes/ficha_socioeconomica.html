@@ -386,25 +386,25 @@
           <div class="col-md-6">
             <div class="ficha-field-group">
               <label class="ficha-label">Provincia / Municipio</label>
-              <input type="text" class="form-control ficha-input-edit" name="provincia_residencia" placeholder="Ej. Florida - Mairana">
+              <input type="text" class="form-control ficha-input-edit" name="provincia_residencia" value="{{ direccion_extra.provincia_residencia|default:'' }}" placeholder="Ej. Florida - Mairana" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-4">
             <div class="ficha-field-group">
               <label class="ficha-label">Zona o Anillo</label>
-              <input type="text" class="form-control ficha-input-edit" name="zona_anillo" placeholder="Ej. Barrio Lindo">
+              <input type="text" class="form-control ficha-input-edit" name="zona_anillo" value="{{ direccion_extra.zona_anillo|default:'' }}" placeholder="Ej. Barrio Lindo" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-4">
             <div class="ficha-field-group">
               <label class="ficha-label">Barrio</label>
-              <input type="text" class="form-control ficha-input-edit" name="barrio" placeholder="Ej. Central">
+              <input type="text" class="form-control ficha-input-edit" name="barrio" value="{{ direccion_extra.barrio|default:'' }}" placeholder="Ej. Central" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-4">
             <div class="ficha-field-group">
               <label class="ficha-label">Calle / Avenida</label>
-              <input type="text" class="form-control ficha-input-edit" name="calle" placeholder="Ej. Calle Avaroa N° 45">
+              <input type="text" class="form-control ficha-input-edit" name="calle" value="{{ direccion_extra.calle|default:'' }}" placeholder="Ej. Calle Avaroa N° 45" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
         </div>
@@ -445,31 +445,31 @@
           <div class="col-md-2 col-4">
             <div class="ficha-field-group">
               <label class="ficha-label">Dormitorio</label>
-              <input type="number" class="form-control ficha-input-edit" name="cant_dormitorios" value="1" min="1">
+              <input type="number" class="form-control ficha-input-edit" name="cant_dormitorios" value="{{ direccion_extra.cant_dormitorios|default:'1' }}" min="1" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-2 col-4">
             <div class="ficha-field-group">
               <label class="ficha-label">Baño</label>
-              <input type="number" class="form-control ficha-input-edit" name="cant_banos" value="1" min="0">
+              <input type="number" class="form-control ficha-input-edit" name="cant_banos" value="{{ direccion_extra.cant_banos|default:'1' }}" min="0" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-2 col-4">
             <div class="ficha-field-group">
               <label class="ficha-label">Comedor</label>
-              <input type="number" class="form-control ficha-input-edit" name="cant_comedores" value="0" min="0">
+              <input type="number" class="form-control ficha-input-edit" name="cant_comedores" value="{{ direccion_extra.cant_comedores|default:'0' }}" min="0" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-3 col-6">
             <div class="ficha-field-group">
               <label class="ficha-label">Sala</label>
-              <input type="number" class="form-control ficha-input-edit" name="cant_salas" value="0" min="0">
+              <input type="number" class="form-control ficha-input-edit" name="cant_salas" value="{{ direccion_extra.cant_salas|default:'0' }}" min="0" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
           <div class="col-md-3 col-6">
             <div class="ficha-field-group">
               <label class="ficha-label">Patio</label>
-              <input type="number" class="form-control ficha-input-edit" name="cant_patios" value="0" min="0">
+              <input type="number" class="form-control ficha-input-edit" name="cant_patios" value="{{ direccion_extra.cant_patios|default:'0' }}" min="0" {% if not puede_editar %}disabled{% endif %}>
             </div>
           </div>
         </div>
@@ -495,7 +495,7 @@
         <!-- 9° ACLARACIÓN O COMENTARIO PERSONAL -->
         <div class="ficha-seccion-titulo">9° ACLARACIÓN O COMENTARIO PERSONAL</div>
         <div class="ficha-field-group">
-          <textarea class="form-control ficha-input-edit" name="comentarios" rows="3" placeholder="Redacte cualquier observación o aclaración sobre su situación socioeconómica si es necesario..."></textarea>
+          <textarea class="form-control ficha-input-edit" name="comentarios" rows="3" placeholder="Redacte cualquier observación o aclaración sobre su situación socioeconómica si es necesario..." {% if not puede_editar %}disabled{% endif %}>{{ direccion_extra.comentarios|default:'' }}</textarea>
         </div>
 
         <!-- Requisitos Físicos / Digitales Obligatorios de la convocatoria -->

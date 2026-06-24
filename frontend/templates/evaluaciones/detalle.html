@@ -46,7 +46,17 @@
             <div class="col-6"><span class="text-muted">Cédula:</span> {{ postulante.cedula }}</div>
             <div class="col-6"><span class="text-muted">Teléfono:</span> {{ postulante.telefono|default:"—" }}</div>
             <div class="col-6"><span class="text-muted">Fecha registro:</span> {{ postulante.fecha_registro|date:"d/m/Y H:i" }}</div>
-            <div class="col-12"><span class="text-muted">Dirección:</span> {{ postulante.direccion|default:"—" }}</div>
+            <div class="col-12">
+              <span class="text-muted">Dirección:</span> 
+              {% if direccion_extra %}
+                <strong>{{ direccion_extra.provincia_residencia|default:"" }}</strong>
+                {% if direccion_extra.zona_anillo %} · {{ direccion_extra.zona_anillo }}{% endif %}
+                {% if direccion_extra.barrio %} · Barrio: {{ direccion_extra.barrio }}{% endif %}
+                {% if direccion_extra.calle %} · Calle: {{ direccion_extra.calle }}{% endif %}
+              {% else %}
+                {{ postulante.direccion|default:"—" }}
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>

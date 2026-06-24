@@ -368,6 +368,16 @@ class DetallePostulanteView(EvaluadorRequeridoMixin, DetailView):
         ctx = super().get_context_data(**kwargs)
         ctx['obs_form'] = ObservacionEvaluacionForm()
 
+        # Deserializar dirección e infraestructura extra de JSON
+        import json
+        direccion_extra = {}
+        if self.object.direccion:
+            try:
+                direccion_extra = json.loads(self.object.direccion)
+            except Exception:
+                pass
+        ctx['direccion_extra'] = direccion_extra
+
         # getattr() no captura RelatedObjectDoesNotExist en relaciones OneToOne de Django.
         # Se usa try/except para evitar error 500 cuando el postulante aún no tiene evaluación
         # ni solicitud de beca creada (por ejemplo si nunca envió su postulación).
@@ -639,6 +649,19 @@ class VerFichaSocioeconomicaView(EvaluadorRequeridoMixin, TemplateView):
                 field.widget.attrs['disabled'] = True
                 field.required = False
 
+        # Deserializar dirección e infraestructura extra de JSON
+        import json
+        direccion_extra = {}
+        if postulante.direccion:
+            try:
+                direccion_extra = json.loads(postulante.direccion)
+            except Exception:
+                direccion_extra = {
+                    'calle': postulante.direccion,
+                    'cant_dormitorios': '1',
+                    'cant_banos': '1',
+                }
+
         return self.render_to_response({
             'form_ficha': form_ficha,
             'form_acad': form_acad,
@@ -646,5 +669,6 @@ class VerFichaSocioeconomicaView(EvaluadorRequeridoMixin, TemplateView):
             'postulante': postulante,
             'puede_editar': False,    # El evaluador solo puede ver, no editar
             'es_evaluador': True,     # Indica que es vista del evaluador para mostrar botones correctos
+            'direccion_extra': direccion_extra,
         })
 
