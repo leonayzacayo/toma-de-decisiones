@@ -50,7 +50,7 @@ class FichaSocioeconomicaForm(forms.ModelForm):
     archivo_boleta_inscripcion = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Boleta de Inscripción *", required=True)
     archivo_historico_academico = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Histórico Académico *", required=True)
     archivo_carnet_identidad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Carnet (Anverso) *", required=True)
-    archivo_carnet_identidad_reverso = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Carnet (Reverso - Opcional)", required=False)
+    archivo_carnet_identidad_reverso = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Carnet (Reverso) *", required=True)
     archivo_analisis_medicos = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Análisis Médicos *", required=True)
 
     class Meta:
@@ -126,6 +126,8 @@ class FichaSocioeconomicaForm(forms.ModelForm):
                 self.fields['archivo_historico_academico'].required = False
             if self.instance.archivo_carnet_identidad:
                 self.fields['archivo_carnet_identidad'].required = False
+            if self.instance.archivo_carnet_identidad_reverso:
+                self.fields['archivo_carnet_identidad_reverso'].required = False
             if self.instance.archivo_analisis_medicos:
                 self.fields['archivo_analisis_medicos'].required = False
             if self.instance.doc_ingresos:
