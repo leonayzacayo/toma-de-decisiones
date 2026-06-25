@@ -98,13 +98,43 @@ def calcular_y_guardar_puntaje(postulante):
 
     p_total = p_academico + p_socioeconomico
 
+    # Verificar procedencia para rechazo automático por Vallegrande
+    proc_val = ""
+    try:
+        proc_val = postulante.ficha_socioeconomica.procedencia or ""
+    except Exception:
+        pass
+
+    es_vallegrande = False
+    parts = [p.strip() for p in proc_val.split('-')]
+    if len(parts) == 3 and parts[2].lower() == "vallegrande":
+        es_vallegrande = True
+    elif proc_val.strip().lower() == "vallegrande":
+        es_vallegrande = True
+
     # Guardar o actualizar SolicitudBeca
     solicitud, _ = SolicitudBeca.objects.get_or_create(postulante=postulante)
     solicitud.puntaje_academico = p_academico
     solicitud.puntaje_socioeconomico = p_socioeconomico
     solicitud.puntaje_total = p_total
-    if solicitud.estado in (None, '', 'Pendiente', 'Postulación completada'):
-        solicitud.estado = "Postulación completada" if postulante.ficha_completada else "Pendiente"
+
+    if es_vallegrande:
+        solicitud.rechazado = True
+        solicitud.estado = 'Rechazado'
+        solicitud.motivo_rechazo = "Rechazo automático: El postulante proviene de Vallegrande (solo se otorgan becas a personas fuera de Vallegrande)."
+        from django.utils import timezone
+        solicitud.fecha_rechazo = timezone.now()
+    else:
+        # Revertir rechazo automático si cambia su procedencia a algo que no sea Vallegrande
+        if solicitud.rechazado and solicitud.motivo_rechazo == "Rechazo automático: El postulante proviene de Vallegrande (solo se otorgan becas a personas fuera de Vallegrande).":
+            solicitud.rechazado = False
+            solicitud.estado = 'Pendiente'
+            solicitud.motivo_rechazo = None
+            solicitud.fecha_rechazo = None
+
+        if solicitud.estado in (None, '', 'Pendiente', 'Postulación completada'):
+            solicitud.estado = "Postulación completada" if postulante.ficha_completada else "Pendiente"
+            
     solicitud.save()
 
     # Sincronizar con el modelo legado Evaluacion
