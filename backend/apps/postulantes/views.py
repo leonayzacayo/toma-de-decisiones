@@ -314,7 +314,7 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
                 calcular_y_guardar_puntaje(postulante)
 
             messages.success(request, '¡Ficha Socioeconómica guardada exitosamente!')
-            return redirect('postulantes:mi_postulacion')
+            return redirect('postulantes:panel')
 
         # Reconstruir direccion_extra y carrera a partir de los datos enviados en POST
         # para que el usuario no pierda su información si el formulario falla validación
