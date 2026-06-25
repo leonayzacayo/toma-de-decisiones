@@ -90,10 +90,15 @@
               <span class="text-muted">3. Carnet de Identidad:</span>
               {% if postulante.ficha_socioeconomica.archivo_carnet_identidad %}
               <a href="{{ postulante.ficha_socioeconomica.archivo_carnet_identidad.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
-                <i class="bi bi-person-badge me-1"></i>Ver archivo
+                <i class="bi bi-person-badge me-1"></i>Ver anverso
               </a>
               {% else %}
               <span class="badge text-bg-warning ms-2">No subido</span>
+              {% endif %}
+              {% if postulante.ficha_socioeconomica.archivo_carnet_identidad_reverso %}
+              <a href="{{ postulante.ficha_socioeconomica.archivo_carnet_identidad_reverso.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                <i class="bi bi-person-badge me-1"></i>Ver reverso
+              </a>
               {% endif %}
             </div>
             <div class="col-12">

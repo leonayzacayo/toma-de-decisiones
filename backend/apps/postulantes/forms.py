@@ -49,7 +49,8 @@ class FichaSocioeconomicaForm(forms.ModelForm):
 
     archivo_boleta_inscripcion = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Boleta de Inscripción *", required=True)
     archivo_historico_academico = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Histórico Académico *", required=True)
-    archivo_carnet_identidad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Carnet de Identidad *", required=True)
+    archivo_carnet_identidad = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Carnet (Anverso) *", required=True)
+    archivo_carnet_identidad_reverso = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Carnet (Reverso - Opcional)", required=False)
     archivo_analisis_medicos = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Análisis Médicos *", required=True)
 
     class Meta:
@@ -59,7 +60,7 @@ class FichaSocioeconomicaForm(forms.ModelForm):
             'lugar_residencia', 'tenencia_vivienda', 'tipo_vivienda', 'procedencia',
             'otro_beneficio', 'descripcion_otro_beneficio',
             'doc_ocupacion', 'doc_ingresos', 'doc_vivienda',
-            'archivo_boleta_inscripcion', 'archivo_historico_academico', 'archivo_carnet_identidad', 'archivo_analisis_medicos'
+            'archivo_boleta_inscripcion', 'archivo_historico_academico', 'archivo_carnet_identidad', 'archivo_carnet_identidad_reverso', 'archivo_analisis_medicos'
         )
         widgets = {
             'otro_beneficio': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'otro_beneficio'}),
