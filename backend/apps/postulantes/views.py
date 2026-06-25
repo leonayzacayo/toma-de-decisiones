@@ -256,12 +256,6 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
         carrera_val = request.POST.get('carrera', '').strip()
         if not carrera_val:
             messages.error(request, 'El campo "Carrera" es obligatorio. Por favor selecciona tu carrera.')
-            # Reconstruir contexto para no perder los datos ingresados
-            ficha = getattr(postulante, 'ficha_socioeconomica', None)
-            academicos = getattr(postulante, 'datos_academicos', None)
-            form_ficha_err = FichaSocioeconomicaForm(request.POST, request.FILES, instance=ficha)
-            form_acad_err = DatosAcademicosForm(instance=academicos)
-            formset_err = MiembroFamiliarFormSet(request.POST, instance=ficha)
             import json
             direccion_extra = {
                 'provincia_residencia': request.POST.get('provincia_residencia', '').strip(),
@@ -275,13 +269,15 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
                 'cant_patios': request.POST.get('cant_patios', '0').strip(),
                 'comentarios': request.POST.get('comentarios', '').strip(),
             }
-            return self.render_to_response(self.get_context_data(
-                form_ficha=form_ficha_err,
-                form_acad=form_acad_err,
-                formset=formset_err,
-                carrera_actual=carrera_val,
-                direccion_extra=direccion_extra,
-            ))
+            return self.render_to_response({
+                'form_ficha': form_ficha,
+                'form_acad': form_acad,
+                'formset': formset,
+                'postulante': postulante,
+                'puede_editar': True,
+                'carrera_actual': carrera_val,
+                'direccion_extra': direccion_extra,
+            })
 
         if form_ficha.is_valid() and formset.is_valid():
             with transaction.atomic():
