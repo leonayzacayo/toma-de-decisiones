@@ -35,6 +35,20 @@ class RegistroAcademicoForm(forms.ModelForm):
         else:
             self.fields['certificado_notas_pdf'].required = True
 
+    def clean_certificado_notas_pdf(self):
+        file = self.cleaned_data.get('certificado_notas_pdf')
+        if not file:
+            return file
+        from django.core.files.uploadedfile import UploadedFile
+        if isinstance(file, UploadedFile):
+            import os
+            ext = os.path.splitext(file.name)[1].lower().strip('.')
+            if ext and ext not in ['pdf', 'png', 'jpg', 'jpeg']:
+                raise forms.ValidationError("La extensión de archivo no está permitida. Usa pdf, png, jpg o jpeg.")
+            if not ext and file.content_type not in ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg']:
+                raise forms.ValidationError("El archivo no parece ser un PDF o imagen válida.")
+        return file
+
 
 class FichaSocioeconomicaForm(forms.ModelForm):
     dependencia = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-select'}), label="Dependencia Económica")
