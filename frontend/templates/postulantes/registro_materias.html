@@ -26,35 +26,7 @@
           <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
 
-            <!-- Resumen Académico Actual -->
-            {% if datos_acad.ppa > 0 or datos_acad.materias_aprobadas > 0 %}
-            <div class="row g-3 mb-4 justify-content-center">
-              <div class="col-sm-4 col-md-3">
-                <div class="card border-0 bg-light p-3 rounded-3 text-center shadow-sm">
-                  <div class="text-muted small fw-bold mb-1">PPA (Promedio)</div>
-                  <div class="h3 fw-bold text-dark mb-0">{{ datos_acad.ppa|floatformat:2 }}</div>
-                </div>
-              </div>
-              <div class="col-sm-4 col-md-3">
-                <div class="card border-0 bg-light p-3 rounded-3 text-center shadow-sm">
-                  <div class="text-muted small fw-bold mb-1">Materias Aprobadas</div>
-                  <div class="h3 fw-bold text-dark mb-0">{{ datos_acad.materias_aprobadas }}</div>
-                </div>
-              </div>
-              <div class="col-sm-4 col-md-4">
-                <div class="card border-0 bg-light p-3 rounded-3 text-center shadow-sm">
-                  <div class="text-muted small fw-bold mb-1">Puntaje Académico Total</div>
-                  <div class="h3 fw-bold text-primary mb-0">
-                    {{ datos_acad.puntaje_academico_total|floatformat:1 }}
-                    <span class="fs-6 text-muted">/ 30.0</span>
-                  </div>
-                  <small class="text-muted">PPA: {{ datos_acad.puntaje_ppa|floatformat:1 }} | Mat: {{ datos_acad.puntaje_materias|floatformat:1 }}</small>
-                </div>
-              </div>
-            </div>
-            {% endif %}
-
-            <!-- Carga de Certificado de Notas -->
+            <!-- Resumen Académico Actual (Oculto a petición del usuario) -->            <!-- Carga de Certificado de Notas -->
             <div class="card bg-light border-0 rounded-4 p-4 mb-4">
               <h5 class="fw-bold mb-3 text-dark">
                 <i class="bi bi-file-earmark-image-fill text-primary me-2"></i>Certificado de Notas (Respaldo)
