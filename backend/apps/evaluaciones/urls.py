@@ -16,6 +16,7 @@ urlpatterns = [
     path('<int:pk>/editar/',          views.EditarPostulanteStaffView.as_view(), name='editar_postulante'),
     path('<int:pk>/rechazar-postulante/', views.rechazar_postulante,            name='rechazar_postulante'),
     path('<int:pk>/reactivar-postulante/', views.reactivar_postulante,          name='reactivar_postulante'),
+    path('<int:pk>/rechazar-y-reasignar/', views.rechazar_y_reasignar_beca,     name='rechazar_y_reasignar'),
     path('reevaluar-masivo/',         views.ReevaluarMasivoView.as_view(),    name='reevaluar_masivo'),
 ]
 

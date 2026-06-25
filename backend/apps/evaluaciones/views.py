@@ -689,6 +689,100 @@ def reactivar_postulante(request, pk):
     return redirect('evaluaciones:detalle', pk=pk)
 
 
+@login_required
+@user_passes_test(lambda u: u.is_staff or (hasattr(u, 'perfil') and u.perfil.es_evaluador()))
+def rechazar_y_reasignar_beca(request, pk):
+    postulante_obj = get_object_or_404(Postulante, pk=pk)
+    solicitud = get_object_or_404(SolicitudBeca, postulante=postulante_obj)
+
+    if request.method == 'POST':
+        motivo = request.POST.get('motivo_rechazo', 'Perdió el beneficio (ya contaba con otra beca u otra incompatibilidad).').strip()
+        
+        had_beca = (solicitud.estado == 'Beca Asignada')
+        
+        # 1. Rechazar al postulante actual
+        solicitud.rechazado = True
+        solicitud.estado = 'Rechazado'
+        solicitud.motivo_rechazo = motivo
+        solicitud.fecha_rechazo = timezone.now()
+        solicitud.save()
+
+        postulante_obj.ficha_completada = True
+        postulante_obj.save()
+
+        # Sincronizar Evaluacion
+        eval_obj, _ = Evaluacion.objects.get_or_create(postulante=postulante_obj)
+        eval_obj.estado = Evaluacion.ESTADO_RECHAZADO
+        eval_obj.save()
+
+        # Registrar en LogAccion
+        LogAccion.objects.create(
+            usuario=request.user,
+            accion='evaluacion',
+            detalles={'postulante': solicitud.postulante.user.username, 'nuevo_estado': 'Rechazado', 'motivo': motivo},
+            objeto_id=solicitud.postulante.pk,
+            objeto_tipo='Postulante'
+        )
+
+        # 2. Si tenía beca asignada, reasignar el cupo al siguiente postulante elegible
+        sig_postulante = None
+        if had_beca:
+            # Obtener el orden de desempate
+            order_fields = ['-puntaje_total']
+            rules = ReglaDesempate.objects.filter(activo=True).order_by('orden_ejecucion')
+            for rule in rules:
+                prefix = '-' if rule.direccion == 'desc' else ''
+                order_fields.append(prefix + rule.campo_modelo)
+
+            # Buscar el primer postulante con ficha completa, no rechazado, que no tenga beca asignada
+            siguiente_solicitud = SolicitudBeca.objects.filter(
+                postulante__ficha_completada=True,
+                rechazado=False,
+                estado='No seleccionado'
+            ).order_by(*order_fields).first()
+
+            if siguiente_solicitud:
+                siguiente_solicitud.estado = 'Beca Asignada'
+                siguiente_solicitud.fecha_asignacion = timezone.now()
+                siguiente_solicitud.save()
+                sig_postulante = siguiente_solicitud.postulante
+                
+                # Sincronizar Evaluacion para el nuevo beneficiario
+                eval_sig, _ = Evaluacion.objects.get_or_create(postulante=sig_postulante)
+                eval_sig.estado = Evaluacion.ESTADO_APROBADO
+                eval_sig.save()
+                
+                # Enviar correo de asignación al siguiente
+                try:
+                    from django.core.mail import send_mail
+                    from django.conf import settings
+                    asunto = "¡Felicidades! Beca Albergue Asignada"
+                    cuerpo = (
+                        f"Hola {sig_postulante.user.first_name or sig_postulante.nombre_completo or sig_postulante.user.username},\n\n"
+                        f"Te informamos que has sido seleccionado para la asignación de la Beca Albergue UAGRM por reasignación de cupo libre.\n\n"
+                        f"Puedes verificar los detalles en tu panel de usuario:\n"
+                        f"{request.build_absolute_uri('/dashboard/')}"
+                    )
+                    send_mail(
+                        asunto,
+                        cuerpo,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                        [sig_postulante.user.email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Error al enviar correo de reasignación: {e}")
+
+        msg = f'Postulante {solicitud.postulante.user.get_full_name()} rechazado.'
+        if sig_postulante:
+            msg += f' El cupo libre ha sido reasignado automáticamente a {sig_postulante.user.get_full_name()} por orden de mérito.'
+        
+        messages.success(request, msg)
+        return redirect('evaluaciones:ranking_postulantes')
+        
+    return redirect('evaluaciones:ranking_postulantes')
+
+
 class VerFichaSocioeconomicaView(EvaluadorRequeridoMixin, TemplateView):
     template_name = 'postulantes/ficha_socioeconomica.html'
 

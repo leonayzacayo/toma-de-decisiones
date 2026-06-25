@@ -125,9 +125,19 @@
                     {% endif %}
                   </td>
                   <td class="text-end pe-4">
-                    <a href="{% url 'evaluaciones:detalle' sol.postulante.pk %}" class="btn btn-sm btn-outline-primary rounded-3">
-                      <i class="bi bi-eye-fill"></i> Ficha
-                    </a>
+                    <div class="d-flex justify-content-end gap-1">
+                      <a href="{% url 'evaluaciones:detalle' sol.postulante.pk %}" class="btn btn-sm btn-outline-primary rounded-3" title="Ver Ficha">
+                        <i class="bi bi-eye-fill"></i> Ficha
+                      </a>
+                      <form method="post" action="{% url 'evaluaciones:rechazar_y_reasignar' sol.postulante.pk %}" 
+                            class="d-inline-block" 
+                            onsubmit="return confirm('¿Estás seguro de quitar la beca/rechazar a {{ sol.postulante.user.get_full_name }}? Si posee beca asignada, se asignará automáticamente al siguiente postulante elegible en el ranking.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" title="Quitar Beca / Rechazar">
+                          <i class="bi bi-trash-fill"></i> Quitar
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               {% endfor %}
