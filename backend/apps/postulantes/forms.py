@@ -149,13 +149,7 @@ class FichaSocioeconomicaForm(forms.ModelForm):
         return mapping.get(val, 0)
 
     def clean_procedencia(self):
-        val = self.cleaned_data.get('procedencia') or ''
-        parts = [p.strip() for p in val.split('-')]
-        if len(parts) == 3 and parts[2].lower() == 'vallegrande':
-            raise forms.ValidationError("No puede postular: Las personas que pertenecen al municipio de Vallegrande no son elegibles para esta beca.")
-        elif val.strip().lower() == 'vallegrande':
-            raise forms.ValidationError("No puede postular: Las personas que pertenecen al municipio de Vallegrande no son elegibles para esta beca.")
-        return val
+        return self.cleaned_data.get('procedencia') or ''
 
 
 

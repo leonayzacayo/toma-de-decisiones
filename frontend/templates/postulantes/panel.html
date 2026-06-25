@@ -30,6 +30,12 @@
           <h5 class="fw-bold mb-1">Selección Finalizada</h5>
           <p class="mb-0 small opacity-90">No has sido seleccionado dentro de los cupos de esta convocatoria.</p>
         </div>
+      {% elif solicitud_beca and solicitud_beca.estado == 'Rechazado' %}
+        <div class="card-body p-4 bg-danger text-white text-center">
+          <div class="fs-2 mb-2"><i class="bi bi-x-circle-fill"></i></div>
+          <h5 class="fw-bold mb-1">Postulación Rechazada</h5>
+          <p class="mb-0 small opacity-90">{{ solicitud_beca.motivo_rechazo|default:"No cumples con los requisitos para acceder a esta beca." }}</p>
+        </div>
       {% else %}
         {% if postulante.ficha_completada %}
           <div class="card-body p-4 text-center text-white" style="background: linear-gradient(135deg, #1b365d 0%, #10b981 100%);">
@@ -61,7 +67,9 @@
       <div class="card-header bg-white py-3 border-0">
         <div class="d-flex justify-content-between align-items-center">
           <h5 class="card-title mb-0 fw-bold text-secondary"><i class="bi bi-clipboard-check me-2 text-primary"></i>Pasos Requeridos</h5>
-          {% if postulante.ficha_completada %}
+          {% if solicitud_beca and solicitud_beca.estado == 'Rechazado' %}
+            <span class="badge bg-danger rounded-pill px-3">Rechazado</span>
+          {% elif postulante.ficha_completada %}
             <span class="badge bg-success rounded-pill px-3">Enviado</span>
           {% elif estado_postulacion.is_completa %}
             <span class="badge bg-info text-white rounded-pill px-3">Listo para enviar</span>
@@ -143,7 +151,12 @@
         <!-- Botón Enviar Postulación (afuera de los pasos, abajo de materias cursadas) -->
         <hr class="my-4 opacity-25">
         <div class="text-center mt-3">
-          {% if postulante.ficha_completada %}
+          {% if solicitud_beca and solicitud_beca.estado == 'Rechazado' %}
+            <div class="alert alert-danger d-inline-block rounded-pill px-4 py-2 border-0 mb-0">
+              <i class="bi bi-x-octagon-fill me-2 fs-5 align-middle"></i>
+              <span class="fw-bold align-middle">Tu postulación ha sido rechazada por no cumplir con los requisitos del sistema.</span>
+            </div>
+          {% elif postulante.ficha_completada %}
             <div class="alert alert-success d-inline-block rounded-pill px-4 py-2 border-0 mb-0">
               <i class="bi bi-patch-check-fill me-2 fs-5 align-middle"></i>
               <span class="fw-bold align-middle">Tu postulación ha sido enviada con éxito. Ya estás participando en el proceso.</span>

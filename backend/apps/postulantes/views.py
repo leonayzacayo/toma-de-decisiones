@@ -119,14 +119,21 @@ def calcular_y_guardar_puntaje(postulante):
     solicitud.puntaje_total = p_total
 
     if es_vallegrande:
-        solicitud.rechazado = True
-        solicitud.estado = 'Rechazado'
-        solicitud.motivo_rechazo = "Rechazo automático: El postulante proviene de Vallegrande (solo se otorgan becas a personas fuera de Vallegrande)."
-        from django.utils import timezone
-        solicitud.fecha_rechazo = timezone.now()
+        if postulante.ficha_completada:
+            solicitud.rechazado = True
+            solicitud.estado = 'Rechazado'
+            solicitud.motivo_rechazo = "No cumples con los requisitos de procedencia, ya que resides en el municipio de Vallegrande."
+            from django.utils import timezone
+            solicitud.fecha_rechazo = timezone.now()
+        else:
+            solicitud.rechazado = False
+            if solicitud.estado in (None, '', 'Pendiente', 'Postulación completada', 'Rechazado'):
+                solicitud.estado = "Pendiente"
+                solicitud.motivo_rechazo = None
+                solicitud.fecha_rechazo = None
     else:
         # Revertir rechazo automático si cambia su procedencia a algo que no sea Vallegrande
-        if solicitud.rechazado and solicitud.motivo_rechazo == "Rechazo automático: El postulante proviene de Vallegrande (solo se otorgan becas a personas fuera de Vallegrande).":
+        if solicitud.rechazado and solicitud.motivo_rechazo == "No cumples con los requisitos de procedencia, ya que resides en el municipio de Vallegrande.":
             solicitud.rechazado = False
             solicitud.estado = 'Pendiente'
             solicitud.motivo_rechazo = None
@@ -507,8 +514,11 @@ class EnviarPostulacionView(PostulanteRequeridoMixin, View):
         with transaction.atomic():
             postulante.ficha_completada = True
             postulante.save()
-            calcular_y_guardar_puntaje(postulante)
+            solicitud = calcular_y_guardar_puntaje(postulante)
             
-        messages.success(request, '¡Tu postulación ha sido enviada con éxito! Ahora estás participando en el proceso de asignación de becas.')
+        if solicitud.estado == 'Rechazado' and solicitud.rechazado:
+            messages.error(request, 'No puedes postular a la beca porque vives o eres del municipio de Vallegrande. Esta beca es exclusiva para personas de fuera de Vallegrande.')
+        else:
+            messages.success(request, '¡Tu postulación ha sido enviada con éxito! Ahora estás participando en el proceso de asignación de becas.')
         return redirect('postulantes:panel')
 

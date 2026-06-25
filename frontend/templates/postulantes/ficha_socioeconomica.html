@@ -384,12 +384,7 @@
             </div>
           </div>
 
-          <div class="col-12" id="alert_vallegrande" style="display:none;">
-            <div class="alert alert-danger border-0 mb-0 py-2 px-3" style="border-radius:0; font-size:0.875rem;">
-              <i class="bi bi-x-octagon-fill me-2"></i>
-              <strong>No puede postular:</strong> Solo pueden postular personas provenientes de <strong>fuera del municipio de Vallegrande</strong>.
-            </div>
-          </div>
+
 
           <div class="col-12">
             <div class="ficha-field-group">
@@ -951,7 +946,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (selectedProv) provSel.value = selectedProv;
     }
     updateHidden();
-    checkVallegrande();
   }
 
   function fillMunicipios(selectedMun) {
@@ -968,7 +962,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (selectedMun) munSel.value = selectedMun;
     }
     updateHidden();
-    checkVallegrande();
   }
 
   function updateHidden() {
@@ -976,16 +969,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (hiddenInput) hiddenInput.value = (dep && prov && mun) ? `${dep} - ${prov} - ${mun}` : '';
   }
 
-  function checkVallegrande() {
-    const bloqueado = munSel.value === 'Vallegrande';
-    if (alertBox) alertBox.style.display = bloqueado ? 'block' : 'none';
-    const btn = document.querySelector('button[type="submit"]');
-    if (btn) btn.disabled = bloqueado;
-  }
-
   depSel.addEventListener('change',  () => fillProvincias());
   provSel.addEventListener('change', () => fillMunicipios());
-  munSel.addEventListener('change',  () => { updateHidden(); checkVallegrande(); });
+  munSel.addEventListener('change',  () => { updateHidden(); });
 
   // Pre-seleccionar si hay valor guardado
   if (savedDep) {
@@ -998,12 +984,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const form = depSel.closest('form');
   if (form) {
     form.addEventListener('submit', function (e) {
-      if (munSel.value === 'Vallegrande') {
-        e.preventDefault();
-        alertBox.style.display = 'block';
-        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
       if (!hiddenInput || !hiddenInput.value) {
         e.preventDefault();
         depSel.focus();
