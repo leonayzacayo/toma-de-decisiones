@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load l10n %}
 {% block title %}Registro Académico de Materias - BecasUni{% endblock %}
 
 {% block content %}
@@ -161,7 +162,7 @@
                       <input type="number"
                              name="nota_{{ item.catalogo.pk }}"
                              id="nota_{{ item.catalogo.pk }}"
-                             value="{{ item.nota }}"
+                             value="{{ item.nota|unlocalize }}"
                              min="0" max="100" step="0.1"
                              class="form-control form-control-sm text-center nota-input"
                              placeholder="—"
