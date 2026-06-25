@@ -291,12 +291,32 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
             messages.success(request, '¡Ficha Socioeconómica guardada exitosamente!')
             return redirect('postulantes:mi_postulacion')
 
+        # Reconstruir direccion_extra y carrera a partir de los datos enviados en POST
+        # para que el usuario no pierda su información si el formulario falla validación
+        direccion_extra = {
+            'provincia_residencia': request.POST.get('provincia_residencia', '').strip(),
+            'zona_anillo': request.POST.get('zona_anillo', '').strip(),
+            'barrio': request.POST.get('barrio', '').strip(),
+            'calle': request.POST.get('calle', '').strip(),
+            'cant_dormitorios': request.POST.get('cant_dormitorios', '1').strip(),
+            'cant_banos': request.POST.get('cant_banos', '1').strip(),
+            'cant_comedores': request.POST.get('cant_comedores', '0').strip(),
+            'cant_salas': request.POST.get('cant_salas', '0').strip(),
+            'cant_patios': request.POST.get('cant_patios', '0').strip(),
+            'comentarios': request.POST.get('comentarios', '').strip(),
+        }
+        
+        carrera_val = request.POST.get('carrera')
+        if carrera_val:
+            postulante.carrera = carrera_val
+
         return self.render_to_response({
             'form_ficha': form_ficha,
             'form_acad': form_acad,
             'formset': formset,
             'postulante': postulante,
             'puede_editar': True,
+            'direccion_extra': direccion_extra,
         })
 
 
