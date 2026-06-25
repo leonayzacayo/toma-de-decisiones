@@ -257,6 +257,31 @@ class FichaSocioeconomicaView(PostulanteRequeridoMixin, TemplateView):
                 # Guardar Ficha Socioeconómica
                 ficha_obj = form_ficha.save(commit=False)
                 ficha_obj.postulante = postulante
+
+                # Subir archivos a Cloudinary secuencialmente con pausas para evitar errores de "Slow Down, Out of Processing Capacity"
+                import time
+                file_fields = [
+                    'archivo_boleta_inscripcion', 'archivo_historico_academico',
+                    'archivo_carnet_identidad', 'archivo_carnet_identidad_reverso',
+                    'archivo_analisis_medicos', 'doc_ocupacion', 'doc_ingresos', 'doc_vivienda'
+                ]
+                
+                for field_name in file_fields:
+                    file_obj = request.FILES.get(field_name)
+                    if file_obj:
+                        field_attr = getattr(ficha_obj, field_name)
+                        max_retries = 3
+                        for attempt in range(max_retries):
+                            try:
+                                field_attr.save(file_obj.name, file_obj, save=False)
+                                time.sleep(1.5)  # Pausa entre subidas
+                                break
+                            except Exception as e:
+                                if ("Slow Down" in str(e) or "Capacity" in str(e)) and attempt < max_retries - 1:
+                                    time.sleep(4)  # Pausa más larga si hay rate limit
+                                    continue
+                                raise e
+
                 ficha_obj.save()
 
                 # Guardar Miembros Familiares
