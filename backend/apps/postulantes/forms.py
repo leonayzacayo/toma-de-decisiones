@@ -29,6 +29,13 @@ class RegistroAcademicoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Eliminar FileExtensionValidator nativo para que no de error si el archivo ya existe (se valida manualmente en clean_)
+        self.fields['certificado_notas_pdf'].validators = [
+            v for v in self.fields['certificado_notas_pdf'].validators 
+            if type(v).__name__ != 'FileExtensionValidator'
+        ]
+
         # El certificado de notas es obligatorio si aún no se ha subido
         if self.instance and self.instance.certificado_notas_pdf:
             self.fields['certificado_notas_pdf'].required = False
@@ -37,8 +44,13 @@ class RegistroAcademicoForm(forms.ModelForm):
 
     def clean_certificado_notas_pdf(self):
         file = self.cleaned_data.get('certificado_notas_pdf')
+        
+        # Si no se subió un nuevo archivo (puede llegar como None o ""), conservar el existente
         if not file:
+            if self.instance and self.instance.pk and self.instance.certificado_notas_pdf:
+                return self.instance.certificado_notas_pdf
             return file
+            
         from django.core.files.uploadedfile import UploadedFile
         if isinstance(file, UploadedFile):
             import os
