@@ -491,13 +491,7 @@ class RegistroMateriasView(PostulanteRequeridoMixin, TemplateView):
                 from .utils import calcular_puntaje_academico
                 res = calcular_puntaje_academico(postulante)
 
-            messages.success(
-                request,
-                f'✅ Registro académico guardado. '
-                f'PPA: {res["promedio"]:.2f} | '
-                f'Aprobadas: {res["aprobadas"]} materias | '
-                f'Puntaje académico: {res["total"]:.1f} pts.'
-            )
+            messages.success(request, '✅ Registro exitoso.')
             return redirect('postulantes:panel')
 
         # form_acad inválido
