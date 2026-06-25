@@ -353,13 +353,45 @@
         <!-- 4° DE LA PROCEDENCIA -->
         <div class="ficha-seccion-titulo">4° PROCEDENCIA (LUGAR DE ORIGEN DEL POSTULANTE)</div>
         <div class="row g-3">
-          <div class="col-md-6">
+
+          {% if puede_editar %}
+          {{ form_ficha.procedencia }}
+
+          <div class="col-md-4">
             <div class="ficha-field-group">
-              <label class="ficha-label">{{ form_ficha.procedencia.label }} <span class="asterisk-required">*</span></label>
-              {{ form_ficha.procedencia }}
+              <label class="ficha-label">Departamento <span class="asterisk-required">*</span></label>
+              <select id="select_departamento" class="form-select ficha-input-edit" required>
+                <option value="">Seleccione departamento...</option>
+              </select>
             </div>
           </div>
-          <div class="col-md-6">
+
+          <div class="col-md-4">
+            <div class="ficha-field-group">
+              <label class="ficha-label">Provincia <span class="asterisk-required">*</span></label>
+              <select id="select_provincia" class="form-select ficha-input-edit" disabled>
+                <option value="">Seleccione provincia...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="ficha-field-group">
+              <label class="ficha-label">Municipio <span class="asterisk-required">*</span></label>
+              <select id="select_municipio" class="form-select ficha-input-edit" disabled>
+                <option value="">Seleccione municipio...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-12" id="alert_vallegrande" style="display:none;">
+            <div class="alert alert-danger border-0 mb-0 py-2 px-3" style="border-radius:0; font-size:0.875rem;">
+              <i class="bi bi-x-octagon-fill me-2"></i>
+              <strong>No puede postular:</strong> Solo pueden postular personas provenientes de <strong>fuera del municipio de Vallegrande</strong>.
+            </div>
+          </div>
+
+          <div class="col-12">
             <div class="ficha-field-group">
               <label class="ficha-label">Respaldo Procedencia <span class="asterisk-required">*</span></label>
               {{ form_ficha.doc_ingresos }}
@@ -372,6 +404,28 @@
               {% endif %}
             </div>
           </div>
+
+          {% else %}
+          <div class="col-md-6">
+            <div class="ficha-field-group">
+              <label class="ficha-label">Lugar de Procedencia</label>
+              <input type="text" class="form-control ficha-input-readonly" value="{{ form_ficha.instance.procedencia|default:'' }}" readonly>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="ficha-field-group">
+              <label class="ficha-label">Respaldo Procedencia</label>
+              {% if form_ficha.instance.doc_ingresos %}
+                <a href="{{ form_ficha.instance.doc_ingresos.url }}" target="_blank" class="btn btn-sm btn-outline-info py-1 px-2 text-decoration-none" style="font-size: 0.75rem;">
+                  <i class="bi bi-file-earmark-check me-1"></i>Ver Archivo Adjunto
+                </a>
+              {% else %}
+                <span class="text-muted small">Sin archivo</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
         </div>
 
         <!-- 5° DE LA RESIDENCIA -->
@@ -730,6 +784,235 @@ document.addEventListener('DOMContentLoaded', function() {
             recalculateRowNumbers();
         }
     }
+});
+
+// ============================================================
+// PROCEDENCIA: Cascada Departamento → Provincia → Municipio
+// ============================================================
+(function () {
+  const BOLIVIA_GEO = {
+    "La Paz": {
+      "Murillo": ["La Paz", "El Alto", "Palca", "Mecapaca", "Achocalla"],
+      "Omasuyos": ["Achacachi", "Ancoraimes", "Chua Cocani", "Huatajata"],
+      "Camacho": ["Puerto Acosta", "Mocomoco", "Puerto Carabuco", "San Pedro de Tiquina"],
+      "Muñecas": ["Chuma", "Ayata", "Aucapata"],
+      "Larecaja": ["Sorata", "Quiabaya", "Combaya", "Guanay", "Tacacoma", "Tipuani", "Mapiri"],
+      "Loayza": ["Luribay", "Sapahaqui", "Yaco", "Malla", "Cairoma"],
+      "Inquisivi": ["Inquisivi", "Quime", "Cajuata", "Colquiri", "Ichoca", "Licoma Pampa"],
+      "Sud Yungas": ["Yanacachi", "Chulumani", "Irupana", "La Asunta", "Palos Blancos"],
+      "Nor Yungas": ["Coroico", "Coripata"],
+      "Abel Iturralde": ["Ixiamas", "San Buenaventura"],
+      "Bautista Saavedra": ["Charazani", "Curva"],
+      "Manco Kapac": ["Copacabana", "Tito Yupanqui"],
+      "Gualberto Villarroel": ["San Pedro de Curahuara", "Chacarilla"],
+      "Ingavi": ["Viacha", "Guaqui", "Desaguadero", "Taraco", "San Andrés de Machaca", "Jesús de Machaca"],
+      "Pacajes": ["Coro Coro", "Caquiaviri", "Comanche", "Calacoto", "Charaña", "Santiago de Callapa"],
+      "Aroma": ["Sica Sica", "Umala", "Ayo Ayo", "Calamarca", "Patacamaya", "Colquencha"],
+      "Franz Tamayo": ["Apolo", "Pelechuco"],
+      "José Manuel Pando": ["Catacora"]
+    },
+    "Cochabamba": {
+      "Cercado": ["Cochabamba", "Colcapirhua", "Sacaba", "Sipe Sipe"],
+      "Ayopaya": ["Independencia", "Morochata", "Cocapata"],
+      "Esteban Arze": ["Tarata", "Anzaldo", "Arbieto", "Sacabamba"],
+      "Arani": ["Arani", "Vacas", "Cuchumuela"],
+      "Arque": ["Arque", "Tacopaya"],
+      "Capinota": ["Capinota", "Santiváñez", "Sicaya"],
+      "Germán Jordán": ["Cliza", "Toco", "Tolata"],
+      "Quillacollo": ["Quillacollo", "Sipe Sipe", "Tiquipaya", "Vinto", "Colcapirhua"],
+      "Chapare": ["Shinahota", "Chimoré", "Puerto Villarroel", "Entre Ríos", "Villa Tunari"],
+      "Tapacarí": ["Tapacarí", "Ramadas", "Challa"],
+      "Tiraque": ["Tiraque", "Totora", "Pocona"],
+      "Carrasco": ["Totora", "Pojo", "Pocona", "Chimoré", "Puerto Villarroel", "Entre Ríos"],
+      "Mizque": ["Mizque", "Vila Vila", "Alalay"],
+      "Punata": ["Punata", "Villa Rivero", "San Benito", "Tacachi"],
+      "Bolívar": ["Bolívar"]
+    },
+    "Santa Cruz": {
+      "Andrés Ibáñez": ["Santa Cruz de la Sierra", "Cotoca", "Porongo", "La Guardia", "El Torno"],
+      "Warnes": ["Warnes", "Okinawa Uno"],
+      "Guarayos": ["Ascensión de Guarayos", "Urubichá", "El Puente"],
+      "Ñuflo de Chávez": ["Concepción", "San Julián", "San Antonio de Lomerío", "Cuatro Cañadas", "San Ramón", "San Javier"],
+      "Velasco": ["San Ignacio", "San Miguel de Velasco", "San Rafael"],
+      "Ichilo": ["Buena Vista", "San Carlos", "Yapacaní", "Portachuelo"],
+      "Chiquitos": ["San José de Chiquitos", "Pailón", "Roboré", "San Rafael"],
+      "Sara": ["Portachuelo", "Santa Rosa del Sara", "Colpa Bélgica"],
+      "Cordillera": ["Camiri", "Lagunillas", "Charagua", "Cabezas", "Cuevo", "Gutiérrez", "Boyuibe"],
+      "Vallegrande": ["Vallegrande", "Trigal", "Postrer Valle", "Moro Moro", "Pucará"],
+      "Florida": ["Samaipata", "Mairana", "Quirusillas"],
+      "Obispo Santistevan": ["Montero", "Mineros", "Fernández Alonso", "San Pedro", "General Saavedra"],
+      "Manuel María Caballero": ["Comarapa", "Saipina"],
+      "Germán Busch": ["Puerto Suárez", "Puerto Quijarro", "El Carmen Rivero Tórrez"],
+      "Ángel Sandoval": ["San Matías"]
+    },
+    "Oruro": {
+      "Cercado": ["Oruro", "El Choro", "Soracachi"],
+      "Sajama": ["Curahuara de Carangas", "Turco", "Cosapa"],
+      "Sabaya": ["Sabaya", "Coipasa", "Chipaya"],
+      "Carangas": ["Corque", "Huayllamarca"],
+      "Saucarí": ["Toledo"],
+      "Poopó": ["Poopó", "Pazña", "Antequera"],
+      "Pantaleón Dalence": ["Huanuni", "Machacamarca"],
+      "Ladislao Cabrera": ["Salinas de García Mendoza", "Pampa Aullagas"],
+      "Avaroa": ["Challapata", "El Choro"],
+      "Bolívar": ["Bolívar"],
+      "Sebastián Pagador": ["Caracollo", "Soracachi"],
+      "Tomás Barrón": ["Eucaliptus"],
+      "Litoral": ["Huachacalla", "Escara"]
+    },
+    "Potosí": {
+      "Tomás Frías": ["Potosí", "Yocalla", "Chaqui", "Tacobamba"],
+      "Rafael Bustillo": ["Uncía", "Chayanta", "Llallagua"],
+      "Cornelio Saavedra": ["Betanzos", "Vitichi", "Cotagaita"],
+      "Chayanta": ["Colquechaca", "Ravelo", "Pocoata", "Ocurí", "San Pedro de Buena Vista"],
+      "Charcas": ["San Pedro de Buena Vista", "Toro Toro"],
+      "Sur Chichas": ["Tupiza", "Atocha", "Vitichi"],
+      "Nor Lípez": ["Colcha K", "San Pedro de Quemes"],
+      "Sur Lípez": ["San Pablo de Lípez", "Mojinete"],
+      "José María Linares": ["Puna", "Caiza D", "Tinguipaya"],
+      "Daniel Campos": ["Llica", "Tahua"],
+      "Modesto Omiste": ["Villazón"],
+      "Antonio Quijarro": ["Uyuni", "Tomave", "Porco"],
+      "Alonso de Ibáñez": ["Sacaca", "Caripuyo"]
+    },
+    "Chuquisaca": {
+      "Oropeza": ["Sucre", "Yotala", "Poroma"],
+      "Yamparáez": ["Tarabuco", "Yamparáez"],
+      "Zudáñez": ["Zudáñez", "Presto", "Mojocoya", "Icla"],
+      "Tomina": ["Padilla", "Sopachuy", "Villa Alcalá", "El Villar"],
+      "Hernando Siles": ["Monteagudo", "Huacareta"],
+      "Juana Azurduy de Padilla": ["Tarvita", "Villa Serrano"],
+      "Nor Cinti": ["Villa Abecia", "Camargo", "Incahuasi"],
+      "Sur Cinti": ["Culpina", "Villa Charcas"],
+      "Luis Calvo": ["Muyupampa", "Huacaya", "Macharetí"]
+    },
+    "Tarija": {
+      "Cercado": ["Tarija", "San Lorenzo", "Uriondo", "Yunchará"],
+      "Méndez": ["San Lorenzo", "El Puente", "Uriondo"],
+      "Avilés": ["Uriondo", "Padcaya"],
+      "Gran Chaco": ["Yacuiba", "Caraparí", "Villa Montes"],
+      "Arce": ["Bermejo", "Padcaya"],
+      "O'Connor": ["Entre Ríos"]
+    },
+    "Beni": {
+      "Cercado": ["Trinidad", "San Javier"],
+      "Vaca Díez": ["Riberalta", "Guayaramerín"],
+      "General José Ballivián": ["Reyes", "San Borja", "Santa Rosa", "Rurrenabaque"],
+      "Yacuma": ["Santa Ana del Yacuma", "Exaltación"],
+      "Moxos": ["San Ignacio de Moxos"],
+      "Mamoré": ["San Joaquín", "San Ramón", "Puerto Siles"],
+      "Iténez": ["Magdalena", "Baures", "Huacaraje"],
+      "Marban": ["Loreto", "San Andrés"]
+    },
+    "Pando": {
+      "Nicolás Suárez": ["Cobija", "Porvenir", "Bolpebra", "Bella Flor"],
+      "Manuripi": ["Puerto Rico", "San Pedro", "Santos Mercado", "Filadelfia"],
+      "Madre de Dios": ["San Lorenzo"],
+      "Abuná": ["Santa Rosa del Abuná"],
+      "Federico Román": ["Nueva Esperanza"]
+    }
+  };
+
+  const depSel  = document.getElementById('select_departamento');
+  const provSel = document.getElementById('select_provincia');
+  const munSel  = document.getElementById('select_municipio');
+  const hiddenInput = document.getElementById('id_procedencia');
+  const alertBox    = document.getElementById('alert_vallegrande');
+
+  if (!depSel) return; // No estamos en modo edición
+
+  // Poblar departamentos
+  Object.keys(BOLIVIA_GEO).sort().forEach(dep => {
+    const opt = new Option(dep, dep);
+    depSel.appendChild(opt);
+  });
+
+  // Recuperar valor guardado (para re-renders tras error)
+  let savedDep = '', savedProv = '', savedMun = '';
+  if (hiddenInput && hiddenInput.value) {
+    const parts = hiddenInput.value.split(' - ');
+    if (parts.length === 3) {
+      savedDep = parts[0]; savedProv = parts[1]; savedMun = parts[2];
+    }
+  }
+
+  function fillProvincias(selectedProv) {
+    const dep = depSel.value;
+    provSel.innerHTML = '<option value="">Seleccione provincia...</option>';
+    munSel.innerHTML  = '<option value="">Seleccione municipio...</option>';
+    provSel.disabled = !dep;
+    munSel.disabled  = true;
+    if (dep && BOLIVIA_GEO[dep]) {
+      Object.keys(BOLIVIA_GEO[dep]).sort().forEach(prov => {
+        const opt = new Option(prov, prov);
+        provSel.appendChild(opt);
+      });
+      provSel.disabled = false;
+      if (selectedProv) provSel.value = selectedProv;
+    }
+    updateHidden();
+    checkVallegrande();
+  }
+
+  function fillMunicipios(selectedMun) {
+    const dep  = depSel.value;
+    const prov = provSel.value;
+    munSel.innerHTML = '<option value="">Seleccione municipio...</option>';
+    munSel.disabled = !prov;
+    if (dep && prov && BOLIVIA_GEO[dep] && BOLIVIA_GEO[dep][prov]) {
+      BOLIVIA_GEO[dep][prov].sort().forEach(mun => {
+        const opt = new Option(mun, mun);
+        munSel.appendChild(opt);
+      });
+      munSel.disabled = false;
+      if (selectedMun) munSel.value = selectedMun;
+    }
+    updateHidden();
+    checkVallegrande();
+  }
+
+  function updateHidden() {
+    const dep = depSel.value, prov = provSel.value, mun = munSel.value;
+    if (hiddenInput) hiddenInput.value = (dep && prov && mun) ? `${dep} - ${prov} - ${mun}` : '';
+  }
+
+  function checkVallegrande() {
+    const bloqueado = munSel.value === 'Vallegrande';
+    if (alertBox) alertBox.style.display = bloqueado ? 'block' : 'none';
+    const btn = document.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = bloqueado;
+  }
+
+  depSel.addEventListener('change',  () => fillProvincias());
+  provSel.addEventListener('change', () => fillMunicipios());
+  munSel.addEventListener('change',  () => { updateHidden(); checkVallegrande(); });
+
+  // Pre-seleccionar si hay valor guardado
+  if (savedDep) {
+    depSel.value = savedDep;
+    fillProvincias(savedProv);
+    if (savedProv) fillMunicipios(savedMun);
+  }
+
+  // Validar en submit
+  const form = depSel.closest('form');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      if (munSel.value === 'Vallegrande') {
+        e.preventDefault();
+        alertBox.style.display = 'block';
+        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (!hiddenInput || !hiddenInput.value) {
+        e.preventDefault();
+        depSel.focus();
+        depSel.style.borderColor = '#ef4444';
+        alert('Por favor seleccione su Departamento, Provincia y Municipio de procedencia.');
+      }
+    });
+  }
+})();
 });
 </script>
 {% endblock %}

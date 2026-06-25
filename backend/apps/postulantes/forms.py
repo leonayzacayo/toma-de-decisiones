@@ -45,7 +45,7 @@ class FichaSocioeconomicaForm(forms.ModelForm):
     lugar_residencia = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-select'}), label="Lugar de Residencia")
     tenencia_vivienda = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-select'}), label="Tenencia de Vivienda")
     tipo_vivienda = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-select'}), label="Tipo de Vivienda / Infraestructura")
-    procedencia = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-select'}), label="Lugar de Procedencia")
+    procedencia = forms.CharField(widget=forms.HiddenInput(), label="Lugar de Procedencia", required=True)
 
     archivo_boleta_inscripcion = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Boleta de Inscripción *", required=True)
     archivo_historico_academico = forms.FileField(widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.pdf,image/*'}), label="Histórico Académico *", required=True)
@@ -82,7 +82,7 @@ class FichaSocioeconomicaForm(forms.ModelForm):
         from apps.parametros.models import OpcionSocioeconomica
         
         # Populate choices dynamically from the database
-        for var_name in ['dependencia', 'rango_ingresos', 'num_integrantes', 'num_hijos', 'lugar_residencia', 'tenencia_vivienda', 'tipo_vivienda', 'procedencia']:
+        for var_name in ['dependencia', 'rango_ingresos', 'num_integrantes', 'num_hijos', 'lugar_residencia', 'tenencia_vivienda', 'tipo_vivienda']:
             opciones = OpcionSocioeconomica.objects.filter(variable=var_name)
             self.fields[var_name].choices = [(opt.opcion_texto, opt.opcion_texto) for opt in opciones]
 

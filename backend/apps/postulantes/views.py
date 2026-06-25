@@ -31,7 +31,7 @@ def calcular_y_guardar_puntaje(postulante):
     try:
         ficha = postulante.ficha_socioeconomica
         
-        # Mapeo de campos textuales directos
+        # Mapeo de campos textuales directos (excluyendo procedencia para tratarlo dinámicamente)
         campos_texto = {
             'dependencia': ficha.dependencia,
             'ocupacion': ficha.ocupacion,
@@ -39,13 +39,32 @@ def calcular_y_guardar_puntaje(postulante):
             'lugar_residencia': ficha.lugar_residencia,
             'tenencia_vivienda': ficha.tenencia_vivienda,
             'tipo_vivienda': ficha.tipo_vivienda,
-            'procedencia': ficha.procedencia,
         }
         
         for var_name, value in campos_texto.items():
             opt = OpcionSocioeconomica.objects.filter(variable=var_name, opcion_texto=value).first()
             if opt:
                 p_socioeconomico += opt.puntaje
+
+        # Determinar puntaje de procedencia dinámicamente
+        proc_val = ficha.procedencia or ''
+        parts = [p.strip() for p in proc_val.split('-')]
+        
+        proc_categoria = "Ciudad"
+        if len(parts) == 3:
+            dep, prov, mun = parts
+            if dep != "Santa Cruz":
+                proc_categoria = "Otro departamento"
+            elif prov != "Andrés Ibáñez":
+                proc_categoria = "Provincia"
+            else:
+                proc_categoria = "Ciudad"
+        elif proc_val in ["Ciudad", "Otro departamento", "Provincia"]:
+            proc_categoria = proc_val
+            
+        opt_proc = OpcionSocioeconomica.objects.filter(variable='procedencia', opcion_texto=proc_categoria).first()
+        if opt_proc:
+            p_socioeconomico += opt_proc.puntaje
 
         # Mapeo de num_integrantes (X4)
         num = ficha.num_integrantes
