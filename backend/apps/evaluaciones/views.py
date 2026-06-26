@@ -74,15 +74,30 @@ class PanelEvaluadorView(EvaluadorRequeridoMixin, ListView):
         ctx['total_incompletos'] = postulantes_validos.filter(ficha_completada=False).count()
 
         # Datos para gráfico de distribución por carrera
-        carreras_qs = postulantes_validos.values('carrera').annotate(total=models.Count('id')).order_by('-total')
-        carrera_labels = []
-        carrera_values = []
-        for item in carreras_qs:
-            carrera_labels.append(item['carrera'] or 'No especificada')
-            carrera_values.append(item['total'])
+        # Solo mostrar las carreras válidas disponibles en la ficha socioeconómica
+        CARRERAS_VALIDAS = [
+            'Ingeniería en Sistemas',
+            'Ingeniería Agropecuaria',
+            'Contaduría Pública',
+            'Industrialización de Alimentos',
+        ]
+        # Mapeo de variantes de nombres hacia el nombre canónico
+        VARIANTES_CARRERA = {
+            'Ing. en Sistemas': 'Ingeniería en Sistemas',
+            'Ing. en Agropecuaria': 'Ingeniería Agropecuaria',
+            'Lic. en Contaduría': 'Contaduría Pública',
+        }
+
+        # Contar postulantes por carrera (incluyendo variantes de nombre)
+        conteo_carreras = {c: 0 for c in CARRERAS_VALIDAS}
+        for p in postulantes_validos.values_list('carrera', flat=True):
+            carrera_norm = VARIANTES_CARRERA.get(p, p)
+            if carrera_norm in conteo_carreras:
+                conteo_carreras[carrera_norm] += 1
+
         ctx['carrera_data'] = {
-            'labels': carrera_labels,
-            'values': carrera_values,
+            'labels': CARRERAS_VALIDAS,
+            'values': [conteo_carreras[c] for c in CARRERAS_VALIDAS],
         }
 
         # Datos para gráfico de estados
