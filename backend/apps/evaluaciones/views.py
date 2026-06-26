@@ -147,7 +147,7 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
                 order_fields.append(prefix + rule.campo_modelo)
 
             # 3. Obtener solicitudes con ficha completa ordenadas, excluyendo rechazados
-            solicitudes = SolicitudBeca.objects.filter(
+            solicitudes = SolicitudBeca.objects.select_related('postulante', 'postulante__user').filter(
                 postulante__ficha_completada=True,
                 rechazado=False
             ).order_by(*order_fields)
@@ -157,8 +157,12 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
             # 4. Asignar becas
             now = timezone.now()
             seleccionados_ids = []
-            from django.core.mail import send_mail
+            from django.core.mail import get_connection, EmailMessage
             from django.conf import settings
+            
+            # Reutilizar una única conexión SMTP para agilizar el envío masivo
+            emails_to_send = []
+            connection = get_connection()
             
             # Tomar los primeros N
             for idx, sol in enumerate(solicitudes):
@@ -167,50 +171,46 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
                     sol.fecha_asignacion = now
                     seleccionados_ids.append(sol.pk)
                     
-                    # Enviar correo de asignación
-                    try:
-                        asunto = "¡Felicidades! Beca Albergue Asignada"
-                        p_total = sol.puntaje_total if sol.puntaje_total is not None else 0.0
-                        cuerpo = (
-                            f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
-                            f"Nos complace informarte que has sido seleccionado para la asignación de la Beca Albergue UAGRM.\n\n"
-                            f"Tu puntaje final obtenido es de {p_total:.2f} puntos.\n\n"
-                            f"Puedes verificar los detalles en tu panel de usuario:\n"
-                            f"{request.build_absolute_uri('/dashboard/')}"
-                        )
-                        send_mail(
-                            asunto,
-                            cuerpo,
-                            getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                            [sol.postulante.user.email],
-                            fail_silently=True
-                        )
-                    except Exception as e:
-                        print(f"Error al enviar correo de asignación: {e}")
+                    asunto = "¡Felicidades! Beca Albergue Asignada"
+                    p_total = sol.puntaje_total if sol.puntaje_total is not None else 0.0
+                    cuerpo = (
+                        f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
+                        f"Nos complace informarte que has sido seleccionado para la asignación de la Beca Albergue UAGRM.\n\n"
+                        f"Tu puntaje final obtenido es de {p_total:.2f} puntos.\n\n"
+                        f"Puedes verificar los detalles en tu panel de usuario:\n"
+                        f"{request.build_absolute_uri('/dashboard/')}"
+                    )
                 else:
                     sol.estado = 'No seleccionado'
                     sol.fecha_asignacion = None
                     
-                    # Enviar correo de no seleccionado
-                    try:
-                        asunto = "Resultado del proceso de selección - Beca Albergue"
-                        cuerpo = (
-                            f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
-                            f"Te informamos que ha finalizado el proceso de asignación de la Beca Albergue UAGRM.\n\n"
-                            f"Lamentablemente, en esta ocasión no has sido seleccionado dentro de los cupos disponibles para esta convocatoria.\n\n"
-                            f"Puedes verificar los detalles en tu panel de usuario:\n"
-                            f"{request.build_absolute_uri('/dashboard/')}"
-                        )
-                        send_mail(
-                            asunto,
-                            cuerpo,
-                            getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
-                            [sol.postulante.user.email],
-                            fail_silently=True
-                        )
-                    except Exception as e:
-                        print(f"Error al enviar correo de no seleccionado: {e}")
+                    asunto = "Resultado del proceso de selección - Beca Albergue"
+                    cuerpo = (
+                        f"Hola {sol.postulante.user.first_name or sol.postulante.nombre_completo or sol.postulante.user.username},\n\n"
+                        f"Te informamos que ha finalizado el proceso de asignación de la Beca Albergue UAGRM.\n\n"
+                        f"Lamentablemente, en esta ocasión no has sido seleccionado dentro de los cupos disponibles para esta convocatoria.\n\n"
+                        f"Puedes verificar los detalles en tu panel de usuario:\n"
+                        f"{request.build_absolute_uri('/dashboard/')}"
+                    )
+                
+                # Preparar correo si el usuario tiene email
+                if sol.postulante.user.email:
+                    email = EmailMessage(
+                        asunto,
+                        cuerpo,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@uagrm.edu.bo'),
+                        [sol.postulante.user.email],
+                    )
+                    emails_to_send.append(email)
+                    
                 sol.save()
+                
+            # Enviar todos los correos en bloque
+            try:
+                if emails_to_send:
+                    connection.send_messages(emails_to_send)
+            except Exception as e:
+                print(f"Error al enviar correos masivos: {e}")
 
             LogAccion.objects.create(
                 usuario=request.user,
