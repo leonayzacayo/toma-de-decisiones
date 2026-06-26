@@ -404,8 +404,22 @@ class ListaPostulantesView(EvaluadorRequeridoMixin, ListView):
         busqueda = self.request.GET.get('q')
         if busqueda:
             qs = qs.filter(
-                cedula__icontains=busqueda
-            ) | qs.filter(nombre_completo__icontains=busqueda)
+                Q(cedula__icontains=busqueda) | Q(nombre_completo__icontains=busqueda)
+            )
+
+        p_min = self.request.GET.get('puntaje_min')
+        if p_min:
+            try:
+                qs = qs.filter(solicitud_beca__puntaje_total__gte=float(p_min))
+            except ValueError:
+                pass
+
+        p_max = self.request.GET.get('puntaje_max')
+        if p_max:
+            try:
+                qs = qs.filter(solicitud_beca__puntaje_total__lte=float(p_max))
+            except ValueError:
+                pass
 
         return qs.distinct()
 
@@ -420,6 +434,8 @@ class ListaPostulantesView(EvaluadorRequeridoMixin, ListView):
         ]
         ctx['filtro_estado'] = self.request.GET.get('estado', '')
         ctx['filtro_q'] = self.request.GET.get('q', '')
+        ctx['filtro_pmin'] = self.request.GET.get('puntaje_min', '')
+        ctx['filtro_pmax'] = self.request.GET.get('puntaje_max', '')
         ctx['total'] = self.get_queryset().count()
         return ctx
 

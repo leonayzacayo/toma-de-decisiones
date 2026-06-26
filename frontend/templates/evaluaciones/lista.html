@@ -46,6 +46,8 @@
                    class="form-control" placeholder="Nombre o cédula…"
                    hx-get="{% url 'evaluaciones:lista' %}"
                    hx-target="#tabla-postulantes"
+                   hx-select="#tabla-postulantes"
+                   hx-swap="outerHTML"
                    hx-trigger="keyup changed delay:400ms"
                    hx-include="#filtros-form">
           </div>
@@ -55,6 +57,8 @@
           <select name="estado" class="form-select"
                   hx-get="{% url 'evaluaciones:lista' %}"
                   hx-target="#tabla-postulantes"
+                  hx-select="#tabla-postulantes"
+                  hx-swap="outerHTML"
                   hx-trigger="change"
                   hx-include="#filtros-form">
             <option value="">— Todos —</option>
