@@ -156,16 +156,16 @@ class FichaSocioeconomica(models.Model):
     descripcion_otro_beneficio = models.CharField(max_length=200, blank=True)
     
     # documentos de respaldo (opcionales)
-    doc_ocupacion = models.FileField(upload_to='fichas/ocupacion/', blank=True)
-    doc_ingresos = models.FileField(upload_to='fichas/ingresos/', blank=True)
-    doc_vivienda = models.FileField(upload_to='fichas/vivienda/', blank=True)
+    doc_ocupacion = models.FileField(upload_to='fichas/ocupacion/', blank=True, max_length=500)
+    doc_ingresos = models.FileField(upload_to='fichas/ingresos/', blank=True, max_length=500)
+    doc_vivienda = models.FileField(upload_to='fichas/vivienda/', blank=True, max_length=500)
     
     # Requisitos obligatorios
-    archivo_boleta_inscripcion = models.FileField(upload_to='fichas/boletas/', blank=True, null=True)
-    archivo_historico_academico = models.FileField(upload_to='fichas/historicos/', blank=True, null=True)
-    archivo_carnet_identidad = models.FileField(upload_to='fichas/identidades/', blank=True, null=True)
-    archivo_carnet_identidad_reverso = models.FileField(upload_to='fichas/identidades/', blank=True, null=True)
-    archivo_analisis_medicos = models.FileField(upload_to='fichas/medicos/', blank=True, null=True)
+    archivo_boleta_inscripcion = models.FileField(upload_to='fichas/boletas/', blank=True, null=True, max_length=500)
+    archivo_historico_academico = models.FileField(upload_to='fichas/historicos/', blank=True, null=True, max_length=500)
+    archivo_carnet_identidad = models.FileField(upload_to='fichas/identidades/', blank=True, null=True, max_length=500)
+    archivo_carnet_identidad_reverso = models.FileField(upload_to='fichas/identidades/', blank=True, null=True, max_length=500)
+    archivo_analisis_medicos = models.FileField(upload_to='fichas/medicos/', blank=True, null=True, max_length=500)
     fecha_llenado = models.DateTimeField(default=timezone.now, blank=True)
 
 
