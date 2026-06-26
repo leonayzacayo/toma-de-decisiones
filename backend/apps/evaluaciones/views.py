@@ -146,9 +146,10 @@ class EjecutarOptimizacionView(EvaluadorRequeridoMixin, View):
                 prefix = '-' if rule.direccion == 'desc' else ''
                 order_fields.append(prefix + rule.campo_modelo)
 
-            # 3. Obtener solicitudes con ficha completa ordenadas, excluyendo rechazados
+            # 3. Obtener solicitudes con estado 'Postulación completada', excluyendo rechazados
             solicitudes = SolicitudBeca.objects.select_related('postulante', 'postulante__user').filter(
                 postulante__ficha_completada=True,
+                estado='Postulación completada',
                 rechazado=False
             ).order_by(*order_fields)
 
